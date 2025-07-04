@@ -16,6 +16,7 @@ contract SwagForm {
         bool isActive;
         uint256 totalSubmissions;
         uint256 createdAt;
+        address creator;
     }
     
     // Struttura per una submission
@@ -33,17 +34,16 @@ contract SwagForm {
     mapping(uint256 => mapping(address => Submission)) public submissions; // formId => user => submission
     mapping(uint256 => mapping(string => bool)) public emailExists; // formId => email => exists
     mapping(uint256 => address[]) public formSubmitters; // formId => array of submitters
+    mapping(address => uint256[]) public userForms; // user => array of form IDs created by user
     
     // Contatori
     uint256 public totalForms;
     uint256 public totalSubmissions;
     
-    // Owner del contratto
-    address public owner;
-    
     // Eventi
     event FormCreated(
         uint256 indexed formId,
+        address indexed creator,
         string title,
         uint256 questionsCount,
         uint256 timestamp
@@ -59,20 +59,16 @@ contract SwagForm {
     
     event FormStatusChanged(uint256 indexed formId, bool active);
     
-    // Modifier per il proprietario
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner can call this function");
-        _;
-    }
-    
     // Modifier per verificare che il form esista
     modifier formExists(uint256 formId) {
         require(formId < totalForms, "Form does not exist");
         _;
     }
     
-    constructor() {
-        owner = msg.sender;
+    // Modifier per verificare che l'utente sia il creatore del form
+    modifier onlyFormCreator(uint256 formId) {
+        require(forms[formId].creator == msg.sender, "Only form creator can perform this action");
+        _;
     }
     
     // Funzione per creare un nuovo form
@@ -81,7 +77,7 @@ contract SwagForm {
         string calldata _description,
         string[] calldata _questions,
         bool[] calldata _isRequired
-    ) external onlyOwner {
+    ) external {
         require(bytes(_title).length > 0, "Title is required");
         require(_questions.length > 0, "At least one question is required");
         require(_questions.length == _isRequired.length, "Questions and required flags must have same length");
@@ -94,6 +90,7 @@ contract SwagForm {
         forms[formId].isActive = true;
         forms[formId].totalSubmissions = 0;
         forms[formId].createdAt = block.timestamp;
+        forms[formId].creator = msg.sender;
         
         // Aggiungi le domande
         for (uint256 i = 0; i < _questions.length; i++) {
@@ -103,9 +100,12 @@ contract SwagForm {
             }));
         }
         
+        // Aggiungi il form alla lista dell'utente
+        userForms[msg.sender].push(formId);
+        
         totalForms++;
         
-        emit FormCreated(formId, _title, _questions.length, block.timestamp);
+        emit FormCreated(formId, msg.sender, _title, _questions.length, block.timestamp);
     }
     
     // Funzione per sottomettere un form
@@ -155,7 +155,8 @@ contract SwagForm {
         uint256 questionsCount,
         bool isActive,
         uint256 totalSubmissions,
-        uint256 createdAt
+        uint256 createdAt,
+        address creator
     ) {
         Form storage form = forms[_formId];
         return (
@@ -164,7 +165,8 @@ contract SwagForm {
             form.questions.length,
             form.isActive,
             form.totalSubmissions,
-            form.createdAt
+            form.createdAt,
+            form.creator
         );
     }
     
@@ -184,25 +186,23 @@ contract SwagForm {
         return formSubmitters[_formId];
     }
     
-    // Funzioni di amministrazione
-    function setFormActive(uint256 _formId, bool _active) external onlyOwner formExists(_formId) {
+    function getUserForms(address _user) external view returns (uint256[] memory) {
+        return userForms[_user];
+    }
+    
+    // Funzioni di gestione form (solo per il creatore)
+    function setFormActive(uint256 _formId, bool _active) external formExists(_formId) onlyFormCreator(_formId) {
         forms[_formId].isActive = _active;
         emit FormStatusChanged(_formId, _active);
     }
     
-    function updateFormTitle(uint256 _formId, string calldata _title) external onlyOwner formExists(_formId) {
+    function updateFormTitle(uint256 _formId, string calldata _title) external formExists(_formId) onlyFormCreator(_formId) {
         require(bytes(_title).length > 0, "Title is required");
         forms[_formId].title = _title;
     }
     
-    function updateFormDescription(uint256 _formId, string calldata _description) external onlyOwner formExists(_formId) {
+    function updateFormDescription(uint256 _formId, string calldata _description) external formExists(_formId) onlyFormCreator(_formId) {
         forms[_formId].description = _description;
-    }
-    
-    // Funzione per trasferire la proprietà
-    function transferOwnership(address newOwner) external onlyOwner {
-        require(newOwner != address(0), "New owner cannot be zero address");
-        owner = newOwner;
     }
     
     // Funzione per ottenere statistiche generali
@@ -213,8 +213,8 @@ contract SwagForm {
         return (totalForms, totalSubmissions);
     }
     
-    // Funzione per ottenere tutte le submission di un form (solo per il proprietario)
-    function getAllFormSubmissions(uint256 _formId) external view onlyOwner formExists(_formId) returns (Submission[] memory) {
+    // Funzione per ottenere tutte le submission di un form (solo per il creatore del form)
+    function getAllFormSubmissions(uint256 _formId) external view formExists(_formId) onlyFormCreator(_formId) returns (Submission[] memory) {
         address[] memory submitters = formSubmitters[_formId];
         Submission[] memory formSubmissions = new Submission[](submitters.length);
         
@@ -225,22 +225,48 @@ contract SwagForm {
         return formSubmissions;
     }
     
-    // Funzione per ottenere lista di tutti i form
+    // Funzione per ottenere lista di tutti i form pubblici (titoli, status, contatori)
     function getAllForms() external view returns (
         string[] memory titles,
         bool[] memory activeStatus,
-        uint256[] memory submissionCounts
+        uint256[] memory submissionCounts,
+        address[] memory creators
     ) {
         titles = new string[](totalForms);
         activeStatus = new bool[](totalForms);
         submissionCounts = new uint256[](totalForms);
+        creators = new address[](totalForms);
         
         for (uint256 i = 0; i < totalForms; i++) {
             titles[i] = forms[i].title;
             activeStatus[i] = forms[i].isActive;
             submissionCounts[i] = forms[i].totalSubmissions;
+            creators[i] = forms[i].creator;
         }
         
-        return (titles, activeStatus, submissionCounts);
+        return (titles, activeStatus, submissionCounts, creators);
+    }
+    
+    // Funzione per ottenere statistiche di un utente
+    function getUserStats(address _user) external view returns (
+        uint256 formsCreated,
+        uint256 formsSubmitted
+    ) {
+        formsCreated = userForms[_user].length;
+        
+        // Conta le submission dell'utente
+        uint256 submittedCount = 0;
+        for (uint256 i = 0; i < totalForms; i++) {
+            if (submissions[i][_user].timestamp > 0) {
+                submittedCount++;
+            }
+        }
+        
+        return (formsCreated, submittedCount);
+    }
+    
+    // Funzione per verificare se un utente è il creatore di un form
+    function isFormCreator(uint256 _formId, address _user) external view formExists(_formId) returns (bool) {
+        return forms[_formId].creator == _user;
     }
 } 
