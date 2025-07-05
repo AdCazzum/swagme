@@ -4,8 +4,12 @@ import { MiniKit, User, VerificationLevel } from "@worldcoin/minikit-js";
 import { useState } from "react";
 
 export const Verify = (user: User) => {
-  const [buttonState, setButtonState] = useState<"pending" | "success" | "failed" | undefined>(undefined);
-  const [whichVerification, setWhichVerification] = useState<VerificationLevel>(VerificationLevel.Device);
+  const [buttonState, setButtonState] = useState<
+    "pending" | "success" | "failed" | undefined
+  >(undefined);
+  const [whichVerification, setWhichVerification] = useState<VerificationLevel>(
+    VerificationLevel.Device
+  );
 
   const onClickVerify = async (verificationLevel: VerificationLevel) => {
     setButtonState("pending");
@@ -39,8 +43,16 @@ export const Verify = (user: User) => {
     <div className="grid w-full gap-4">
       <p className="text-lg font-semibold">Verify</p>
       <LiveFeedback
-        label={{ failed: "Failed to verify", pending: "Verifying", success: "Verified" }}
-        state={whichVerification === VerificationLevel.Device ? buttonState : undefined}
+        label={{
+          failed: "Failed to verify",
+          pending: "Verifying",
+          success: "Verified",
+        }}
+        state={
+          whichVerification === VerificationLevel.Device
+            ? buttonState
+            : undefined
+        }
         className="w-full"
       >
         <Button

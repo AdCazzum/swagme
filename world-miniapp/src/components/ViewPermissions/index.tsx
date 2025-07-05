@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { ListItem } from '@worldcoin/mini-apps-ui-kit-react';
-import { MiniKit } from '@worldcoin/minikit-js';
-import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
-import { useEffect, useState } from 'react';
+import { ListItem } from "@worldcoin/mini-apps-ui-kit-react";
+import { MiniKit } from "@worldcoin/minikit-js";
+import { useMiniKit } from "@worldcoin/minikit-js/minikit-provider";
+import { useEffect, useState } from "react";
 
 export const ViewPermissions = () => {
   const [permissions, setPermissions] = useState<Record<string, boolean>>({});
@@ -16,15 +16,15 @@ export const ViewPermissions = () => {
           // You can also fetch this by grabbing from user
           // MiniKit.user.permissions
           const permissions = await MiniKit.commandsAsync.getPermissions();
-          if (permissions?.finalPayload.status === 'success') {
+          if (permissions?.finalPayload.status === "success") {
             setPermissions(permissions?.finalPayload.permissions || {});
-            console.log('permissions', permissions);
+            console.log("permissions", permissions);
           }
         } catch (error) {
-          console.error('Failed to fetch permissions:', error);
+          console.error("Failed to fetch permissions:", error);
         }
       } else {
-        console.log('MiniKit is not installed');
+        console.log("MiniKit is not installed");
       }
     };
     fetchPermissions();

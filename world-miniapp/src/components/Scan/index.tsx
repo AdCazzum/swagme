@@ -6,10 +6,15 @@ import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
 import { useMiniKit } from "@worldcoin/minikit-js/minikit-provider";
 import { SurveyForm } from "../SurveyForm";
 
-const QrScanner = dynamic(() => import("react-qr-reader").then((mod) => mod.QrReader), { ssr: false });
+const QrScanner = dynamic(
+  () => import("react-qr-reader").then((mod) => mod.QrReader),
+  { ssr: false }
+);
 
 export const Scan = () => {
-  const [buttonState, setButtonState] = useState<"pending" | "success" | "failed" | undefined>(undefined);
+  const [buttonState, setButtonState] = useState<
+    "pending" | "success" | "failed" | undefined
+  >(undefined);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
@@ -45,7 +50,9 @@ export const Scan = () => {
     } else {
       await requestMicrophonePermission();
       try {
-        const newStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
         setStream(newStream);
         setIsMicOn(true);
         setPermissionError(null);
@@ -53,7 +60,9 @@ export const Scan = () => {
         console.error("Error accessing microphone:", error);
         const errorName = (error as { name?: string })?.name;
         if (errorName === "NotAllowedError") {
-          setPermissionError("Microphone access denied by browser. Please allow microphone access and try again.");
+          setPermissionError(
+            "Microphone access denied by browser. Please allow microphone access and try again."
+          );
         } else if (errorName === "NotFoundError") {
           setPermissionError("No microphone found on this device.");
         } else {
@@ -63,26 +72,29 @@ export const Scan = () => {
     }
   }, [isMicOn, stream, requestMicrophonePermission]);
 
-  const handleScan: OnResultFunction = useCallback((result?: unknown | undefined | null, error?: Error | undefined | null) => {
-    if (buttonState === "success" || !scanning) return;
+  const handleScan: OnResultFunction = useCallback(
+    (result?: unknown | undefined | null, error?: Error | undefined | null) => {
+      if (buttonState === "success" || !scanning) return;
 
-    const text = (result as { getText?: () => string })?.getText?.();
-    if (text && text.trim()) {
-      console.log("QR Code detected:", text);
-      setSurveyId(text);
-      setScanning(false);
-      setButtonState("success");
-      setTimeout(() => {
-        setShowSurveyForm(true);
-        setButtonState(undefined);
-      }, 1500);
-      return;
-    }
+      const text = (result as { getText?: () => string })?.getText?.();
+      if (text && text.trim()) {
+        console.log("QR Code detected:", text);
+        setSurveyId(text);
+        setScanning(false);
+        setButtonState("success");
+        setTimeout(() => {
+          setShowSurveyForm(true);
+          setButtonState(undefined);
+        }, 1500);
+        return;
+      }
 
-    if (error) {
-      console.warn("Scanner error (continuing):", error);
-    }
-  }, [buttonState, scanning]);
+      if (error) {
+        console.warn("Scanner error (continuing):", error);
+      }
+    },
+    [buttonState, scanning]
+  );
 
   const startScanning = useCallback(async () => {
     if (scanning) return;
@@ -92,11 +104,15 @@ export const Scan = () => {
     setSurveyId(null);
 
     try {
-      await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+      await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" },
+      });
       console.log("Camera permission granted");
     } catch (error) {
       console.error("Camera permission denied:", error);
-      setPermissionError("Camera access is required for QR scanning. Please allow camera access.");
+      setPermissionError(
+        "Camera access is required for QR scanning. Please allow camera access."
+      );
       setScanning(false);
       setButtonState("failed");
       return;
@@ -139,31 +155,55 @@ export const Scan = () => {
     <div className="flex flex-col gap-4 rounded-xl w-full border-2 border-gray-200 p-4">
       <div className="flex flex-row items-center justify-between">
         <p className="text-lg font-semibold">QR Scanner</p>
-        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Survey Access</div>
+        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+          Survey Access
+        </div>
       </div>
 
       {permissionError && (
         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              <svg
+                className="h-5 w-5 text-red-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Permission Required</h3>
-              <div className="mt-2 text-sm text-red-700"><p>{permissionError}</p></div>
+              <h3 className="text-sm font-medium text-red-800">
+                Permission Required
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{permissionError}</p>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       <LiveFeedback
-        label={{ failed: "Failed to scan", pending: "Scanning", success: "Scanned" }}
+        label={{
+          failed: "Failed to scan",
+          pending: "Scanning",
+          success: "Scanned",
+        }}
         state={buttonState}
         className="w-full"
       >
-        <Button onClick={startScanning} disabled={buttonState === "pending" || scanning} size="lg" variant="tertiary" className="w-full">
+        <Button
+          onClick={startScanning}
+          disabled={buttonState === "pending" || scanning}
+          size="lg"
+          variant="tertiary"
+          className="w-full"
+        >
           {scanning ? "Scanning..." : "Scan QR Code"}
         </Button>
 
@@ -174,9 +214,23 @@ export const Scan = () => {
                 <QrScanner
                   scanDelay={300}
                   onResult={handleScan}
-                  containerStyle={{ width: "100%", height: "100%", position: "relative", borderRadius: "8px" }}
-                  videoStyle={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "8px" }}
-                  constraints={{ facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } }}
+                  containerStyle={{
+                    width: "100%",
+                    height: "100%",
+                    position: "relative",
+                    borderRadius: "8px",
+                  }}
+                  videoStyle={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                  }}
+                  constraints={{
+                    facingMode: "environment",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 },
+                  }}
                 />
               </div>
 
@@ -200,7 +254,11 @@ export const Scan = () => {
                 <div className="absolute top-6 left-6 right-6 bottom-6 overflow-hidden rounded-xl">
                   <div
                     className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-blue-400 to-transparent animate-pulse"
-                    style={{ top: "50%", transform: "translateY(-50%)", boxShadow: "0 0 8px rgba(59, 130, 246, 0.8)" }}
+                    style={{
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      boxShadow: "0 0 8px rgba(59, 130, 246, 0.8)",
+                    }}
                   ></div>
                 </div>
                 <div className="absolute bottom-12 left-0 right-0 text-center">
@@ -232,9 +290,16 @@ export const Scan = () => {
       {surveyId && !showSurveyForm && (
         <div className="mt-2 space-y-3">
           <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700 font-bold text-sm">QR Code Scanned: {surveyId}</p>
+            <p className="text-green-700 font-bold text-sm">
+              QR Code Scanned: {surveyId}
+            </p>
           </div>
-          <Button onClick={() => setShowSurveyForm(true)} size="lg" variant="primary" className="w-full">
+          <Button
+            onClick={() => setShowSurveyForm(true)}
+            size="lg"
+            variant="primary"
+            className="w-full"
+          >
             Open Survey
           </Button>
         </div>

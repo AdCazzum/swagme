@@ -14,11 +14,14 @@ export const sepoliaWorld = defineChain({
   name: CHAIN_CONFIG.name,
   nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
   rpcUrls: { default: { http: [CHAIN_CONFIG.rpcUrl] } },
-  blockExplorers: { default: { name: "World Chain Explorer", url: CHAIN_CONFIG.explorerUrl } },
+  blockExplorers: {
+    default: { name: "World Chain Explorer", url: CHAIN_CONFIG.explorerUrl },
+  },
   testnet: true,
 });
 
-export const CONTRACT_ADDRESS = "0xC22820E58D27094941Ce5B85BeE65a4351c9B26c" as const;
+export const CONTRACT_ADDRESS =
+  "0xC22820E58D27094941Ce5B85BeE65a4351c9B26c" as const;
 
 export const publicClient = createPublicClient({
   chain: sepoliaWorld,
@@ -67,15 +70,24 @@ const validateFormId = (formId: string): void => {
   }
 };
 
-const validateSubmission = ({ formId, username, email, answers }: FormSubmission): void => {
+const validateSubmission = ({
+  formId,
+  username,
+  email,
+  answers,
+}: FormSubmission): void => {
   if (!formId?.trim()) throw new ValidationError("Form ID is required");
   if (!username?.trim()) throw new ValidationError("Username is required");
   if (!email?.trim()) throw new ValidationError("Email is required");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError("Invalid email format");
-  if (!Array.isArray(answers) || answers.length === 0) throw new ValidationError("At least one answer is required");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    throw new ValidationError("Invalid email format");
+  if (!Array.isArray(answers) || answers.length === 0)
+    throw new ValidationError("At least one answer is required");
 };
 
-export const getFormQuestions = async (formId: string): Promise<FormQuestion[]> => {
+export const getFormQuestions = async (
+  formId: string
+): Promise<FormQuestion[]> => {
   validateFormId(formId);
   try {
     const result = await publicClient.readContract({
@@ -100,9 +112,24 @@ export const getFormInfo = async (formId: string): Promise<FormInfo> => {
       functionName: "getForm",
       args: [BigInt(formId)],
     });
-    const [title, description, questionsCount, isActive, totalSubmissions, createdAt, creator] = 
-      result as [string, string, bigint, boolean, bigint, bigint, string];
-    return { title, description, questionsCount, isActive, totalSubmissions, createdAt, creator };
+    const [
+      title,
+      description,
+      questionsCount,
+      isActive,
+      totalSubmissions,
+      createdAt,
+      creator,
+    ] = result as [string, string, bigint, boolean, bigint, bigint, string];
+    return {
+      title,
+      description,
+      questionsCount,
+      isActive,
+      totalSubmissions,
+      createdAt,
+      creator,
+    };
   } catch (error) {
     console.error("Error retrieving form information:", error);
     throw new ContractError("Unable to retrieve form information");
@@ -113,43 +140,58 @@ const getErrorMessage = (errorCode?: string): string => {
   const errorMap: Record<string, string> = {
     invalid_contract: "Contract not found or invalid on this network",
     user_rejected: "Transaction rejected by user",
-    insufficient_funds: "Insufficient funds for transaction. Please add ETH to your wallet",
+    insufficient_funds:
+      "Insufficient funds for transaction. Please add ETH to your wallet",
     network_error: "Network error. Please check your connection and try again",
-    connection_error: "Network error. Please check your connection and try again",
-    invalid_input: "Invalid transaction parameters. Please check your input data",
-    invalid_parameter: "Invalid transaction parameters. Please check your input data",
+    connection_error:
+      "Network error. Please check your connection and try again",
+    invalid_input:
+      "Invalid transaction parameters. Please check your input data",
+    invalid_parameter:
+      "Invalid transaction parameters. Please check your input data",
   };
   return errorMap[errorCode || ""] || errorCode || "Unknown transaction error";
 };
 
-export const submitFormToContract = async (submission: FormSubmission): Promise<string> => {
+export const submitFormToContract = async (
+  submission: FormSubmission
+): Promise<string> => {
   validateSubmission(submission);
-  
+
   if (!MiniKit.isInstalled()) {
-    throw new ContractError("World App is not installed or user is not authenticated");
+    throw new ContractError(
+      "World App is not installed or user is not authenticated"
+    );
   }
 
   const { formId, username, email, answers } = submission;
-  const cleanAnswers = answers.map(answer => String(answer).trim()).filter(answer => answer.length > 0);
-  
+  const cleanAnswers = answers
+    .map((answer) => String(answer).trim())
+    .filter((answer) => answer.length > 0);
+
   if (cleanAnswers.length === 0) {
     throw new ValidationError("At least one non-empty answer is required");
   }
 
   try {
     const transactionResult = await MiniKit.commandsAsync.sendTransaction({
-      transaction: [{
-        address: CONTRACT_ADDRESS,
-        abi: TestContractABI,
-        functionName: "submitForm",
-        args: [BigInt(formId), username.trim(), email.trim(), cleanAnswers],
-      }],
+      transaction: [
+        {
+          address: CONTRACT_ADDRESS,
+          abi: TestContractABI,
+          functionName: "submitForm",
+          args: [BigInt(formId), username.trim(), email.trim(), cleanAnswers],
+        },
+      ],
     });
 
     const { finalPayload } = transactionResult;
 
     if (finalPayload.status === "error") {
-      throw new ContractError(getErrorMessage(finalPayload.error_code), finalPayload.error_code);
+      throw new ContractError(
+        getErrorMessage(finalPayload.error_code),
+        finalPayload.error_code
+      );
     }
 
     if (!finalPayload.transaction_id) {
@@ -160,12 +202,20 @@ export const submitFormToContract = async (submission: FormSubmission): Promise<
     return finalPayload.transaction_id;
   } catch (error) {
     console.error("Error submitting form:", error);
-    if (error instanceof ValidationError || error instanceof ContractError) throw error;
-    throw new ContractError(error instanceof Error ? error.message : "Failed to submit form to contract");
+    if (error instanceof ValidationError || error instanceof ContractError)
+      throw error;
+    throw new ContractError(
+      error instanceof Error
+        ? error.message
+        : "Failed to submit form to contract"
+    );
   }
 };
 
-export const hasUserSubmitted = async (formId: string, userAddress: string): Promise<boolean> => {
+export const hasUserSubmitted = async (
+  formId: string,
+  userAddress: string
+): Promise<boolean> => {
   validateFormId(formId);
   if (!userAddress?.startsWith("0x")) {
     throw new ValidationError("Invalid user address format");
@@ -192,7 +242,7 @@ export const isMiniKitAvailable = (): boolean => {
   }
 };
 
-export const getExplorerUrl = (transactionHash: string): string => 
+export const getExplorerUrl = (transactionHash: string): string =>
   `${CHAIN_CONFIG.explorerUrl}/tx/${transactionHash}`;
 
 export const verifyContractExists = async (): Promise<boolean> => {

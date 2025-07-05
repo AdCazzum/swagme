@@ -1,28 +1,37 @@
-'use client';
+"use client";
 
-import TestContractABI from '@/abi/TestContract.json';
-import { Button, LiveFeedback } from '@worldcoin/mini-apps-ui-kit-react';
-import { MiniKit } from '@worldcoin/minikit-js';
-import { useWaitForTransactionReceipt } from '@worldcoin/minikit-react';
-import { useEffect, useState } from 'react';
-import { createPublicClient, http } from 'viem';
-import { worldchain } from 'viem/chains';
+import TestContractABI from "@/abi/TestContract.json";
+import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
+import { MiniKit } from "@worldcoin/minikit-js";
+import { useWaitForTransactionReceipt } from "@worldcoin/minikit-react";
+import { useEffect, useState } from "react";
+import { createPublicClient, http } from "viem";
+import { worldchain } from "viem/chains";
 
-const CONTRACT_ADDRESS = '0xF0882554ee924278806d708396F1a7975b732522';
-const RPC_URL = 'https://worldchain-mainnet.g.alchemy.com/public';
+const CONTRACT_ADDRESS = "0xF0882554ee924278806d708396F1a7975b732522";
+const RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
 const RESET_DELAY = 3000;
 
 export const Transaction = () => {
-  const [buttonState, setButtonState] = useState<'pending' | 'success' | 'failed' | undefined>();
-  const [whichButton, setWhichButton] = useState<'getToken' | 'usePermit2'>('getToken');
-  const [transactionId, setTransactionId] = useState<string>('');
+  const [buttonState, setButtonState] = useState<
+    "pending" | "success" | "failed" | undefined
+  >();
+  const [whichButton, setWhichButton] = useState<"getToken" | "usePermit2">(
+    "getToken"
+  );
+  const [transactionId, setTransactionId] = useState<string>("");
 
   const client = createPublicClient({
     chain: worldchain,
     transport: http(RPC_URL),
   });
 
-  const { isLoading: isConfirming, isSuccess: isConfirmed, isError, error } = useWaitForTransactionReceipt({
+  const {
+    isLoading: isConfirming,
+    isSuccess: isConfirmed,
+    isError,
+    error,
+  } = useWaitForTransactionReceipt({
     client,
     appConfig: {
       app_id: process.env.WLD_CLIENT_ID as `app_${string}`,
@@ -38,54 +47,61 @@ export const Transaction = () => {
     if (!transactionId || isConfirming) return;
 
     if (isConfirmed) {
-      console.log('Transaction confirmed!');
-      setButtonState('success');
+      console.log("Transaction confirmed!");
+      setButtonState("success");
       resetButtonState();
     } else if (isError) {
-      console.error('Transaction failed:', error);
-      setButtonState('failed');
+      console.error("Transaction failed:", error);
+      setButtonState("failed");
       resetButtonState();
     }
   }, [isConfirmed, isConfirming, isError, error, transactionId]);
 
   const onClickGetToken = async () => {
-    setTransactionId('');
-    setWhichButton('getToken');
-    setButtonState('pending');
+    setTransactionId("");
+    setWhichButton("getToken");
+    setButtonState("pending");
 
     try {
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
-        transaction: [{
-          address: CONTRACT_ADDRESS,
-          abi: TestContractABI,
-          functionName: 'mintToken',
-          args: [],
-        }],
+        transaction: [
+          {
+            address: CONTRACT_ADDRESS,
+            abi: TestContractABI,
+            functionName: "mintToken",
+            args: [],
+          },
+        ],
       });
 
-      if (finalPayload.status === 'success') {
-        console.log('Transaction submitted, waiting for confirmation:', finalPayload.transaction_id);
+      if (finalPayload.status === "success") {
+        console.log(
+          "Transaction submitted, waiting for confirmation:",
+          finalPayload.transaction_id
+        );
         setTransactionId(finalPayload.transaction_id);
       } else {
-        console.error('Transaction submission failed:', finalPayload);
-        setButtonState('failed');
+        console.error("Transaction submission failed:", finalPayload);
+        setButtonState("failed");
         resetButtonState();
       }
     } catch (err) {
-      console.error('Error sending transaction:', err);
-      setButtonState('failed');
+      console.error("Error sending transaction:", err);
+      setButtonState("failed");
       resetButtonState();
     }
   };
 
   const onClickUsePermit2 = async () => {
-    setTransactionId('');
-    setWhichButton('usePermit2');
-    setButtonState('pending');
-    
-    const address = (await MiniKit.getUserByUsername('alex')).walletAddress;
+    setTransactionId("");
+    setWhichButton("usePermit2");
+    setButtonState("pending");
+
+    const address = (await MiniKit.getUserByUsername("alex")).walletAddress;
     const amount = (0.5 * 10 ** 18).toString();
-    const deadline = Math.floor((Date.now() + 30 * 60 * 1000) / 1000).toString();
+    const deadline = Math.floor(
+      (Date.now() + 30 * 60 * 1000) / 1000
+    ).toString();
 
     const permitTransfer = {
       permitted: {
@@ -103,37 +119,47 @@ export const Transaction = () => {
 
     try {
       const { finalPayload } = await MiniKit.commandsAsync.sendTransaction({
-        transaction: [{
-          address: CONTRACT_ADDRESS,
-          abi: TestContractABI,
-          functionName: 'signatureTransfer',
-          args: [
-            [
-              [permitTransfer.permitted.token, permitTransfer.permitted.amount],
-              permitTransfer.nonce,
-              permitTransfer.deadline,
+        transaction: [
+          {
+            address: CONTRACT_ADDRESS,
+            abi: TestContractABI,
+            functionName: "signatureTransfer",
+            args: [
+              [
+                [
+                  permitTransfer.permitted.token,
+                  permitTransfer.permitted.amount,
+                ],
+                permitTransfer.nonce,
+                permitTransfer.deadline,
+              ],
+              [transferDetails.to, transferDetails.requestedAmount],
+              "PERMIT2_SIGNATURE_PLACEHOLDER_0",
             ],
-            [transferDetails.to, transferDetails.requestedAmount],
-            'PERMIT2_SIGNATURE_PLACEHOLDER_0',
-          ],
-        }],
-        permit2: [{
-          ...permitTransfer,
-          spender: CONTRACT_ADDRESS,
-        }],
+          },
+        ],
+        permit2: [
+          {
+            ...permitTransfer,
+            spender: CONTRACT_ADDRESS,
+          },
+        ],
       });
 
-      if (finalPayload.status === 'success') {
-        console.log('Transaction submitted, waiting for confirmation:', finalPayload.transaction_id);
+      if (finalPayload.status === "success") {
+        console.log(
+          "Transaction submitted, waiting for confirmation:",
+          finalPayload.transaction_id
+        );
         setTransactionId(finalPayload.transaction_id);
       } else {
-        console.error('Transaction submission failed:', finalPayload);
-        setButtonState('failed');
+        console.error("Transaction submission failed:", finalPayload);
+        setButtonState("failed");
         resetButtonState();
       }
     } catch (err) {
-      console.error('Error sending transaction:', err);
-      setButtonState('failed');
+      console.error("Error sending transaction:", err);
+      setButtonState("failed");
       resetButtonState();
     }
   };
@@ -143,16 +169,16 @@ export const Transaction = () => {
       <p className="text-lg font-semibold">Transaction</p>
       <LiveFeedback
         label={{
-          failed: 'Transaction failed',
-          pending: 'Transaction pending',
-          success: 'Transaction successful',
+          failed: "Transaction failed",
+          pending: "Transaction pending",
+          success: "Transaction successful",
         }}
-        state={whichButton === 'getToken' ? buttonState : undefined}
+        state={whichButton === "getToken" ? buttonState : undefined}
         className="w-full"
       >
         <Button
           onClick={onClickGetToken}
-          disabled={buttonState === 'pending'}
+          disabled={buttonState === "pending"}
           size="lg"
           variant="primary"
           className="w-full"
@@ -162,16 +188,16 @@ export const Transaction = () => {
       </LiveFeedback>
       <LiveFeedback
         label={{
-          failed: 'Transaction failed',
-          pending: 'Transaction pending',
-          success: 'Transaction successful',
+          failed: "Transaction failed",
+          pending: "Transaction pending",
+          success: "Transaction successful",
         }}
-        state={whichButton === 'usePermit2' ? buttonState : undefined}
+        state={whichButton === "usePermit2" ? buttonState : undefined}
         className="w-full"
       >
         <Button
           onClick={onClickUsePermit2}
-          disabled={buttonState === 'pending'}
+          disabled={buttonState === "pending"}
           size="lg"
           variant="tertiary"
           className="w-full"
