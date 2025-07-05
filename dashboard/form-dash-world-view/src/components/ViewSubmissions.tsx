@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSwagForm, Submission, FormData } from '@/hooks/useSwagForm';
+import { useWallet } from '@/hooks/useWallet';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,29 +13,66 @@ interface ViewSubmissionsProps {
 }
 
 const ViewSubmissions = ({ formId, onBack }: ViewSubmissionsProps) => {
-  const { getFormSubmissions, getAllForms } = useSwagForm();
+  const { getFormSubmissions, getAllForms, contract } = useSwagForm();
+  const { account } = useWallet();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [form, setForm] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    loadData();
-  }, [formId]);
+    // Only load data when both contract and account are available
+    if (contract && account) {
+      console.log('Contract and account ready, loading submissions data...');
+      loadData();
+    } else {
+      console.log('Waiting for contract and account in ViewSubmissions...', { 
+        contract: !!contract, 
+        account: !!account 
+      });
+    }
+  }, [formId, contract, account]); // Trigger when contract, account, or formId changes
 
   const loadData = async () => {
+    console.log('Loading submissions data for form ID:', formId);
+    
+    // Double check that we have what we need
+    if (!contract) {
+      console.error('Contract not available in loadData');
+      return;
+    }
+    
+    if (!account) {
+      console.error('Account not available in loadData');
+      return;
+    }
+    
     setLoading(true);
     try {
+      console.log('Getting submissions and forms data...');
+      console.log('Account:', account);
+      console.log('Contract available:', !!contract);
+      
       const [submissionsData, formsData] = await Promise.all([
         getFormSubmissions(formId),
         getAllForms()
       ]);
       
+      console.log('Submissions data received:', submissionsData);
+      console.log('Forms data received for finding current form:', formsData.length, 'forms');
+      
       setSubmissions(submissionsData);
       const currentForm = formsData.find(f => f.id === formId);
+      console.log('Current form found:', currentForm);
       setForm(currentForm || null);
+      
+      console.log('=== SUBMISSIONS LOADED ===');
+      console.log('Total submissions:', submissionsData.length);
+      console.log('Form details:', currentForm);
+      
     } catch (error) {
       console.error('Error loading submissions:', error);
+      console.error('Error details:', error.message);
     } finally {
       setLoading(false);
     }
@@ -85,6 +122,39 @@ const ViewSubmissions = ({ formId, onBack }: ViewSubmissionsProps) => {
           <div className="h-8 bg-gray-200 rounded w-1/3"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
+      </div>
+    );
+  }
+
+  // Show waiting message if contract or account not ready
+  if (!contract || !account) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center space-x-4 mb-6">
+          <Button variant="outline" onClick={onBack}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+        
+        <Card className="p-8 text-center bg-blue-50 border-blue-200">
+          <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">
+            {!account ? 'Connecting Wallet...' : 'Initializing Contract...'}
+          </h3>
+          <p className="text-blue-700 mb-4">
+            {!account 
+              ? 'Please connect your wallet to view submissions' 
+              : 'Setting up contract connection to load form submissions...'
+            }
+          </p>
+          <div className="text-sm text-blue-600">
+            <p>Contract: {contract ? '✓ Ready' : '⏳ Loading...'}</p>
+            <p>Account: {account ? '✓ Connected' : '⏳ Connecting...'}</p>
+          </div>
+        </Card>
       </div>
     );
   }
