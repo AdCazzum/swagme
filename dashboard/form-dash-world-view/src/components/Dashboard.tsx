@@ -382,6 +382,57 @@ const Dashboard = ({ onCreateForm, onViewForm, onViewSubmissions }: DashboardPro
           </div>
         </div>
       )}
+      
+      {/* Footer with Technology Stack */}
+      <div className="mt-16 border-t border-gray-200 pt-8">
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200">
+          <div className="text-center space-y-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Built with Cutting-Edge Web3 Infrastructure
+            </h3>
+            
+            <div className="flex flex-wrap justify-center gap-3">
+              <Badge className="bg-green-100 text-green-800 border-green-200 px-4 py-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                World Chain
+              </Badge>
+              <Badge className="bg-blue-100 text-blue-800 border-blue-200 px-4 py-2">
+                🔗 Flare Data Connector
+              </Badge>
+              <Badge className="bg-purple-100 text-purple-800 border-purple-200 px-4 py-2">
+                ⚡ LayerZero Protocol
+              </Badge>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 text-sm">
+              <div className="text-center">
+                <div className="font-medium text-green-800 mb-1">World Chain</div>
+                <p className="text-gray-600 text-xs">
+                  Decentralized form storage and secure on-chain submissions
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="font-medium text-blue-800 mb-1">Flare Network</div>
+                <p className="text-gray-600 text-xs">
+                  Twitter verification and social media proof validation
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="font-medium text-purple-800 mb-1">LayerZero</div>
+                <p className="text-gray-600 text-xs">
+                  Cross-chain messaging and multi-chain interoperability
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <p className="text-xs text-gray-500">
+                SwagForm • Powered by Web3 • Built for the future of data collection
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
