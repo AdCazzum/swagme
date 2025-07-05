@@ -1,6 +1,6 @@
 "use client";
 
-import TestContractABI from "@/abi/TestContract.json";
+import SwagFormABI from "@/abi/SwagForm.json";
 import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { useWaitForTransactionReceipt } from "@worldcoin/minikit-react";
@@ -8,8 +8,9 @@ import { useEffect, useState } from "react";
 import { createPublicClient, http } from "viem";
 import { worldchain } from "viem/chains";
 
-const CONTRACT_ADDRESS = "0xF0882554ee924278806d708396F1a7975b732522";
-const RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public";
+const CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
+const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "";
 const RESET_DELAY = 3000;
 
 export const Transaction = () => {
@@ -67,7 +68,7 @@ export const Transaction = () => {
         transaction: [
           {
             address: CONTRACT_ADDRESS,
-            abi: TestContractABI,
+            abi: SwagFormABI,
             functionName: "mintToken",
             args: [],
           },
@@ -122,7 +123,7 @@ export const Transaction = () => {
         transaction: [
           {
             address: CONTRACT_ADDRESS,
-            abi: TestContractABI,
+            abi: SwagFormABI,
             functionName: "signatureTransfer",
             args: [
               [

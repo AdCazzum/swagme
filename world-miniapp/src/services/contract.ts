@@ -1,27 +1,27 @@
 import { createPublicClient, http, defineChain } from "viem";
-import TestContractABI from "../abi/TestContract.json";
+import SwagFormABI from "../abi/SwagForm.json";
 import { MiniKit } from "@worldcoin/minikit-js";
 
 const CHAIN_CONFIG = {
-  id: 480,
+  id: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || ""),
   name: "World Chain",
-  rpcUrl: "https://worldchain-mainnet.g.alchemy.com/public",
-  explorerUrl: "https://worldscan.org",
+  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL,
+  explorerUrl: process.env.NEXT_PUBLIC_EXPLORER_URL,
 };
 
 export const sepoliaWorld = defineChain({
   id: CHAIN_CONFIG.id,
   name: CHAIN_CONFIG.name,
   nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
-  rpcUrls: { default: { http: [CHAIN_CONFIG.rpcUrl] } },
+  rpcUrls: { default: { http: [CHAIN_CONFIG.rpcUrl || ""] } },
   blockExplorers: {
-    default: { name: "Worldscan", url: CHAIN_CONFIG.explorerUrl },
+    default: { name: "Worldscan", url: CHAIN_CONFIG.explorerUrl || "" },
   },
   testnet: true,
 });
 
-export const CONTRACT_ADDRESS =
-  "0xC22820E58D27094941Ce5B85BeE65a4351c9B26c" as const;
+export const CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_CONTRACT_ADDRESS as `0x${string}`;
 
 export const publicClient = createPublicClient({
   chain: sepoliaWorld,
@@ -92,7 +92,7 @@ export const getFormQuestions = async (
   try {
     const result = await publicClient.readContract({
       address: CONTRACT_ADDRESS,
-      abi: TestContractABI,
+      abi: SwagFormABI,
       functionName: "getFormQuestions",
       args: [BigInt(formId)],
     });
@@ -108,7 +108,7 @@ export const getFormInfo = async (formId: string): Promise<FormInfo> => {
   try {
     const result = await publicClient.readContract({
       address: CONTRACT_ADDRESS,
-      abi: TestContractABI,
+      abi: SwagFormABI,
       functionName: "getForm",
       args: [BigInt(formId)],
     });
@@ -178,7 +178,7 @@ export const submitFormToContract = async (
       transaction: [
         {
           address: CONTRACT_ADDRESS,
-          abi: TestContractABI.filter((item) => item.name === "submitForm"),
+          abi: SwagFormABI.filter((item) => item.name === "submitForm"),
           functionName: "submitForm",
           args: [BigInt(formId), username.trim(), email.trim(), cleanAnswers],
         },
@@ -223,7 +223,7 @@ export const hasUserSubmitted = async (
   try {
     const result = await publicClient.readContract({
       address: CONTRACT_ADDRESS,
-      abi: TestContractABI,
+      abi: SwagFormABI,
       functionName: "hasSubmitted",
       args: [BigInt(formId), userAddress as `0x${string}`],
     });
@@ -249,7 +249,7 @@ export const verifyContractExists = async (): Promise<boolean> => {
   try {
     const result = await publicClient.readContract({
       address: CONTRACT_ADDRESS,
-      abi: TestContractABI,
+      abi: SwagFormABI,
       functionName: "totalForms",
       args: [],
     });
