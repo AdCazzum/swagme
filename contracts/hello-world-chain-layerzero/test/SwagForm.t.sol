@@ -13,8 +13,8 @@ contract SwagFormTest is Test {
 
     function setUp() public {
         swagForm = new SwagForm(
-            0x6F475642a6e85809B1c36Fa62763669b1b48DD5B, // Worldchain Mainnet EndpointV2
-            msg.sender // OpenZeppelin Ownable
+            address(0x6F475642a6e85809B1c36Fa62763669b1b48DD5B), // Worldchain Mainnet EndpointV2
+            address(0x1) // OpenZeppelin Ownable - invalid address for simplicity
         );
     }
 
