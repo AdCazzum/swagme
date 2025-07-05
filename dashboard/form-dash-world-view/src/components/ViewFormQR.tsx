@@ -66,7 +66,7 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
         description: formDetails.description,
         questions: questions,
         isActive: formDetails.isActive,
-        totalSubmissions: Number(formDetails.totalSubmissions.toString()),
+        totalSubmissions: formDetails.totalSubmissions ? Number(formDetails.totalSubmissions.toString()) : 0,
         createdAt: Number(formDetails.createdAt.toString()),
         creator: formDetails.creator,
       };

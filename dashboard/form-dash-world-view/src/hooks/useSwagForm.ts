@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from './useWallet';
 
-const CONTRACT_ADDRESS = '0xC22820E58D27094941Ce5B85BeE65a4351c9B26c';
+const CONTRACT_ADDRESS = '0xf46514915183BC22DF0Ae0f0AC264E2534d89404';
 
 const CONTRACT_ABI = [
   {
