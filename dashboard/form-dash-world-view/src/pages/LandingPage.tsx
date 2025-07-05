@@ -135,6 +135,14 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
                 <span className="font-bold text-green-700"> No bots, no duplicates, no spam</span> - 
                 just qualified prospects ready to engage with your brand.
               </p>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Thanks to <span className="font-bold text-purple-700">Flare</span>, 
+                web2 info can be used to augment the information gathered from the leads. 
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Thanks to <span className="font-bold text-purple-700">LayerZero</span>, 
+                crosschain interoperability is perfectly managet between World and Flare. 
+              </p>
             </div>
 
             {/* Use Cases */}
