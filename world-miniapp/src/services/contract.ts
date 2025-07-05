@@ -181,7 +181,6 @@ export const submitFormToContract = async (
           abi: TestContractABI.filter((item) => item.name === "submitForm"),
           functionName: "submitForm",
           args: [BigInt(formId), username.trim(), email.trim(), cleanAnswers],
-          value: "0x0",
         },
       ],
     });
