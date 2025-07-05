@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from './useWallet';
 
-const CONTRACT_ADDRESS = '0xf69C5b8C35bA1bD610Fc2a587ff4633CcAD0e109';
+const CONTRACT_ADDRESS = '0xDD0a13b48dd11985Ca8d7562B9564232AB8719B8';
 
 const CONTRACT_ABI = [
   {
@@ -774,6 +774,25 @@ export const useSwagForm = () => {
       const contractInstance = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       setContract(contractInstance);
       console.log('Contract instance created:', CONTRACT_ADDRESS);
+      
+      // Debug network info
+      signer.provider.getNetwork().then(network => {
+        console.log('Current network:', network);
+        console.log('Chain ID:', network.chainId);
+        console.log('Network name:', network.name);
+      }).catch(err => {
+        console.error('Error getting network:', err);
+      });
+      
+      // Test contract connection
+      contractInstance.totalForms().then(totalForms => {
+        console.log('Contract connection test - totalForms:', totalForms.toString());
+        console.log('Contract connection test - totalForms:', totalForms.toString());
+
+      }).catch(err => {
+        console.error('Contract connection test failed:', err);
+        console.error('This usually means the contract is not deployed on this network or the address is wrong');
+      });
     }
   }, [signer]);
 
@@ -850,8 +869,25 @@ export const useSwagForm = () => {
     }
 
     try {
-      console.log('Calling getAllForms on contract...');
-      const [titles, activeStatus, submissionCounts, creators] = await contract.getAllForms();
+      console.log('=== CALLING getAllForms ===');
+      console.log('Contract address:', CONTRACT_ADDRESS);
+      console.log('Contract instance:', contract);
+      console.log('Signer:', !!signer);
+      console.log('Account:', account);
+      
+      // First, let's check if the contract is working by getting totalForms
+      const totalFormsResult = await contract.totalForms();
+      const totalFormsCount = Number(totalFormsResult.toString());
+      console.log('Total forms from contract:', totalFormsCount);
+      
+      if (totalFormsCount === 0) {
+        console.log('No forms found in contract (totalForms = 0)');
+        return [];
+      }
+      
+      // Now call getAllForms
+      const getAllFormsResult = await contract.getAllForms();
+      const [titles, activeStatus, submissionCounts, creators] = getAllFormsResult;
       
       console.log('getAllForms raw data:', {
         titles,
@@ -861,36 +897,55 @@ export const useSwagForm = () => {
         titlesLength: titles.length
       });
       
+      if (titles.length === 0) {
+        console.log('No forms found in getAllForms response');
+        return [];
+      }
+      
       const forms: FormData[] = [];
       for (let i = 0; i < titles.length; i++) {
         console.log(`Processing form ${i}:`, titles[i]);
         
         try {
-          const formDetails = await contract.getForm(i);
-          const questions = await contract.getFormQuestions(i);
+          console.log(`Getting details for form ${i}...`);
+          const formDetailsResult = await contract.getForm(i);
+          console.log(`Form ${i} details raw:`, formDetailsResult);
           
-          console.log(`Form ${i} details:`, formDetails);
-          console.log(`Form ${i} questions:`, questions);
+          console.log(`Getting questions for form ${i}...`);
+          const questionsResult = await contract.getFormQuestions(i);
+          console.log(`Form ${i} questions raw:`, questionsResult);
           
-          forms.push({
+          const formData = {
             id: i,
             title: titles[i],
-            description: formDetails.description,
-            questions: questions,
+            description: formDetailsResult.description,
+            questions: questionsResult,
             isActive: activeStatus[i],
-            totalSubmissions: Number(submissionCounts[i]),
-            createdAt: Number(formDetails.createdAt),
+            totalSubmissions: Number(submissionCounts[i].toString()),
+            createdAt: Number(formDetailsResult.createdAt.toString()),
             creator: creators[i],
-          });
+          };
+          
+          console.log(`Form ${i} processed:`, formData);
+          forms.push(formData);
         } catch (error) {
           console.error(`Error fetching details for form ${i}:`, error);
+          console.error(`Error details:`, error.message);
         }
       }
       
       console.log('Final forms array:', forms);
+      console.log('Returning', forms.length, 'forms');
       return forms;
     } catch (error) {
       console.error('Error fetching forms:', error);
+      console.error('Error details:', error.message);
+      if (error.data) {
+        console.error('Error data:', error.data);
+      }
+      if (error.code) {
+        console.error('Error code:', error.code);
+      }
       return [];
     }
   };
@@ -924,11 +979,17 @@ export const useSwagForm = () => {
     if (!contract) return { totalForms: 0, totalSubmissions: 0 };
 
     try {
-      const [totalForms, totalSubmissions] = await contract.getStats();
-      return {
-        totalForms: Number(totalForms),
-        totalSubmissions: Number(totalSubmissions),
+      console.log('Getting stats...');
+      const statsResult = await contract.getStats();
+      const [totalForms, totalSubmissions] = statsResult;
+      
+      const stats = {
+        totalForms: Number(totalForms.toString()),
+        totalSubmissions: Number(totalSubmissions.toString()),
       };
+      
+      console.log('Stats retrieved:', stats);
+      return stats;
     } catch (error) {
       console.error('Error fetching stats:', error);
       return { totalForms: 0, totalSubmissions: 0 };

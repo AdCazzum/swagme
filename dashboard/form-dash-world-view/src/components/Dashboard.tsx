@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSwagForm } from '@/hooks/useSwagForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,7 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ onCreateForm, onViewForm, onViewSubmissions }: DashboardProps) => {
-  const { getAllForms, getStats, isFormCreator } = useSwagForm();
+  const { getAllForms, getStats, isFormCreator, contract } = useSwagForm();
   const { account } = useWallet();
   const [forms, setForms] = useState<FormData[]>([]);
   const [stats, setStats] = useState({ totalForms: 0, totalSubmissions: 0 });
@@ -23,20 +22,45 @@ const Dashboard = ({ onCreateForm, onViewForm, onViewSubmissions }: DashboardPro
   const [creatorStatuses, setCreatorStatuses] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
-    loadData();
-  }, []);
+    // Only load data when both contract and account are available
+    if (contract && account) {
+      console.log('Contract and account ready, loading data...');
+      loadData();
+    } else {
+      console.log('Waiting for contract and account...', { 
+        contract: !!contract, 
+        account: !!account 
+      });
+    }
+  }, [contract, account]); // Trigger when contract or account changes
 
   const loadData = async () => {
     console.log('Loading dashboard data...');
+    
+    // Double check that we have what we need
+    if (!contract) {
+      console.error('Contract not available in loadData');
+      return;
+    }
+    
+    if (!account) {
+      console.error('Account not available in loadData');
+      return;
+    }
+    
     setLoading(true);
     try {
       console.log('Getting forms and stats...');
+      console.log('Account:', account);
+      console.log('Contract available:', !!contract);
+      
       const [formsData, statsData] = await Promise.all([
         getAllForms(),
         getStats()
       ]);
       
       console.log('Forms data received:', formsData);
+      console.log('Forms data length:', formsData.length);
       console.log('Stats data received:', statsData);
       
       setForms(formsData);
@@ -51,8 +75,15 @@ const Dashboard = ({ onCreateForm, onViewForm, onViewSubmissions }: DashboardPro
         console.log(`Form ${form.id} creator check:`, isCreator);
       }
       setCreatorStatuses(creatorChecks);
+      
+      console.log('=== FINAL DASHBOARD STATE ===');
+      console.log('Total forms:', formsData.length);
+      console.log('Total stats:', statsData);
+      console.log('Creator statuses:', creatorChecks);
+      
     } catch (error) {
       console.error('Error loading dashboard data:', error);
+      console.error('Error details:', error.message);
     } finally {
       setLoading(false);
     }
@@ -81,6 +112,32 @@ const Dashboard = ({ onCreateForm, onViewForm, onViewSubmissions }: DashboardPro
     );
   }
 
+  // Show waiting message if contract or account not ready
+  if (!contract || !account) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-8 text-center bg-blue-50 border-blue-200">
+          <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">
+            {!account ? 'Connecting Wallet...' : 'Initializing Contract...'}
+          </h3>
+          <p className="text-blue-700 mb-4">
+            {!account 
+              ? 'Please connect your wallet to continue' 
+              : 'Setting up contract connection...'
+            }
+          </p>
+          <div className="text-sm text-blue-600">
+            <p>Contract: {contract ? '✓ Ready' : '⏳ Loading...'}</p>
+            <p>Account: {account ? '✓ Connected' : '⏳ Connecting...'}</p>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   const userCreatedForms = forms.filter(form => form.creator.toLowerCase() === account?.toLowerCase());
 
   console.log('Rendering dashboard with:', {
@@ -92,6 +149,55 @@ const Dashboard = ({ onCreateForm, onViewForm, onViewSubmissions }: DashboardPro
 
   return (
     <div className="space-y-8">
+      {/* Debug Panel - Remove this in production */}
+      <Card className="bg-yellow-50 border-yellow-200">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-yellow-800">Debug Info</CardTitle>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => loadData()}
+            disabled={!contract || !account}
+            className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+          >
+            Refresh Data
+          </Button>
+        </CardHeader>
+        <CardContent className="text-sm text-yellow-700">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <strong>Account:</strong> {account || 'Not connected'}
+            </div>
+            <div>
+              <strong>Forms loaded:</strong> {forms.length}
+            </div>
+            <div>
+              <strong>Contract address:</strong> 0xDD0a13b48dd11985Ca8d7562B9564232AB8719B8
+            </div>
+            <div>
+              <strong>Stats:</strong> {stats.totalForms} forms, {stats.totalSubmissions} submissions
+            </div>
+            <div>
+              <strong>Loading:</strong> {loading ? 'Yes' : 'No'}
+            </div>
+            <div>
+              <strong>Connected:</strong> {account ? 'Yes' : 'No'}
+            </div>
+            <div>
+              <strong>Contract Ready:</strong> {contract ? 'Yes' : 'No'}
+            </div>
+            <div>
+              <strong>Ready to Load:</strong> {(contract && account) ? 'Yes' : 'No'}
+            </div>
+          </div>
+          <div className="mt-2 text-xs">
+            Check browser console for detailed logs. If forms are 0 but stats show forms, there's a contract call issue.
+            <br />
+            <strong>Expected behavior:</strong> If you created a form, stats should show totalForms &gt; 0 and forms.length should match.
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Header con pulsante Create Form */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
