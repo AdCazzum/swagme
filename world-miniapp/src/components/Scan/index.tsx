@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Webcam from "react-webcam";
 import { OnResultFunction } from "react-qr-reader";
 import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
 
@@ -15,8 +16,61 @@ export const Scan = () => {
   >(undefined);
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+  const [cameraMode] = useState<"environment" | "user">("environment");
+  const webcamRef = useRef<Webcam>(null);
 
-  const handleScan: OnResultFunction = (
+  const videoConstraints = {
+    width: 1280,
+    height: 720,
+    facingMode: cameraMode,
+  };
+
+  const toggleMicrophone = useCallback(async () => {
+    if (isMicOn) {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        setStream(null);
+      }
+      setIsMicOn(false);
+    } else {
+      try {
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
+        setStream(newStream);
+        setIsMicOn(true);
+      } catch (error) {
+        console.error("Error accessing microphone:", error);
+      }
+    }
+  }, [isMicOn, stream]);
+
+  const capturePhoto = useCallback(async () => {
+    console.log(webcamRef);
+
+    if (!webcamRef.current) {
+      throw new Error("Failed to access webcam");
+    }
+
+    const imageSrc = webcamRef.current.getScreenshot();
+
+    if (!imageSrc) {
+      throw new Error("Failed to capture image");
+    }
+
+    const img = new Image();
+
+    img.src = imageSrc;
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(new Error("Failed to load captured image"));
+    });
+  }, []);
+
+  const handleScan: OnResultFunction = async (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result?: any | undefined | null,
     error?: Error | undefined | null
@@ -35,15 +89,28 @@ export const Scan = () => {
 
     if (error) {
       setButtonState("failed");
-
-      // Reset the button state after 3 seconds
       setTimeout(() => {
         setButtonState(undefined);
       }, 2000);
 
       console.error("Error scanning QR code:", error);
     }
+
+    await toggleMicrophone();
   };
+
+  useEffect(() => {
+    if (scanning && webcamRef.current) {
+      const interval = setInterval(() => {
+        if (webcamRef.current && webcamRef.current.video?.readyState === 4) {
+          capturePhoto();
+          clearInterval(interval);
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    }
+  }, [scanning, capturePhoto]);
 
   return (
     <div className="grid w-full gap-4">
@@ -58,7 +125,9 @@ export const Scan = () => {
         className="w-full"
       >
         <Button
-          onClick={() => setScanning(true)}
+          onClick={() => {
+            setScanning(true);
+          }}
           disabled={buttonState === "pending"}
           size="lg"
           variant="tertiary"
@@ -67,6 +136,15 @@ export const Scan = () => {
           Scan QR Code
         </Button>
         {scanning && (
+          <Webcam
+            ref={webcamRef}
+            audio={false}
+            screenshotFormat="image/jpeg"
+            videoConstraints={videoConstraints}
+            className="w-full h-full object-cover"
+          />
+        )}
+        {/* {scanning && (
           <div className="mt-2">
             <QrScanner
               scanDelay={300}
@@ -78,7 +156,7 @@ export const Scan = () => {
         )}
         {surveyId && (
           <div className="mt-2 text-green-700 font-bold">{surveyId}</div>
-        )}
+        )} */}
       </LiveFeedback>
     </div>
   );
