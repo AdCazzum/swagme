@@ -1,4 +1,3 @@
-// Type declarations for Ethereum provider
 declare global {
   interface Window {
     ethereum?: {
