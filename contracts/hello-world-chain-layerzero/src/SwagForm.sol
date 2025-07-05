@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import {OApp, Origin, MessagingFee} from "@layerzerolabs/oapp-evm/contracts/oapp/OApp.sol";
 import {OAppOptionsType3} from "@layerzerolabs/oapp-evm/contracts/oapp/libs/OAppOptionsType3.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SwagForm is OApp, OAppOptionsType3 {
     // Struttura per una singola domanda
@@ -65,6 +66,14 @@ contract SwagForm is OApp, OAppOptionsType3 {
 
     event FormStatusChanged(uint256 indexed formId, bool active);
 
+    event DataReceived(
+        uint256 indexed formId,
+        address indexed submitter,
+        string username,
+        string email,
+        uint256 timestamp
+    );
+
     // Modifier per verificare che il form esista
     modifier formExists(uint256 formId) {
         require(formId < totalForms, "Form does not exist");
@@ -83,7 +92,10 @@ contract SwagForm is OApp, OAppOptionsType3 {
     string public lastMessage;
     uint16 public constant SEND = 1;
 
-    constructor(address _endpoint, address _owner) OApp(_endpoint, _owner) {}
+    constructor(
+        address _endpoint,
+        address _owner
+    ) OApp(_endpoint, _owner) Ownable(_owner) {}
 
     /**
      * @notice Quotes the gas needed to pay for the full omnichain transaction in native gas or ZRO token.
@@ -145,7 +157,22 @@ contract SwagForm is OApp, OAppOptionsType3 {
 
         lastMessage = _string;
 
-        // TODO: Implement logic to handle the received string
+        // Parse dei dati ricevuti
+        (
+            uint256 formId,
+            string memory username,
+            string memory email,
+            address submitter,
+            uint256 timestamp,
+            string[] memory answers,
+            string[] memory proofs
+        ) = parseReceivedData(_string);
+
+        // Emetti evento per notificare la ricezione
+        emit DataReceived(formId, submitter, username, email, timestamp);
+
+        // TODO: Qui puoi aggiungere logica aggiuntiva per gestire i dati ricevuti
+        // Ad esempio, salvare in un mapping specifico per dati cross-chain
     }
 
     // Funzione per creare un nuovo form
@@ -250,6 +277,38 @@ contract SwagForm is OApp, OAppOptionsType3 {
         formSubmitters[_formId].push(msg.sender);
         forms[_formId].totalSubmissions++;
         totalSubmissions++;
+
+        uint32 _flareChainEid = 30295; // Flare Mainnet Endpoint ID
+        string[] memory _proofStatus = new string[](0);
+        string memory _data = string(
+            abi.encodePacked(
+                "FormID:",
+                uint256ToString(_formId),
+                "|Username:",
+                _username,
+                "|Email:",
+                _email,
+                "|Submitter:",
+                addressToString(msg.sender),
+                "|Timestamp:",
+                uint256ToString(block.timestamp),
+                "|Answers:",
+                stringArrayToString(_answers),
+                "|Proofs:",
+                stringArrayToString(_proofStatus)
+            )
+        );
+
+        // Get fee estimate first
+        MessagingFee memory fee = this.quoteSendString(
+            _flareChainEid,
+            _data,
+            "0x", // no additional options
+            false // pay in native gas
+        );
+
+        // Then send with the estimated fee
+        this.sendString{value: fee.nativeFee}(_flareChainEid, _data, "0x");
 
         emit FormSubmitted(
             _formId,
@@ -476,5 +535,231 @@ contract SwagForm is OApp, OAppOptionsType3 {
         address _user
     ) external view formExists(_formId) returns (bool) {
         return forms[_formId].creator == _user;
+    }
+
+    // Helper functions per conversione in stringa
+    function uint256ToString(
+        uint256 value
+    ) internal pure returns (string memory) {
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
+
+    function addressToString(
+        address _addr
+    ) internal pure returns (string memory) {
+        bytes32 value = bytes32(uint256(uint160(_addr)));
+        bytes memory alphabet = "0123456789abcdef";
+        bytes memory str = new bytes(42);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint256 i = 0; i < 20; i++) {
+            str[2 + i * 2] = alphabet[uint8(value[i + 12] >> 4)];
+            str[3 + i * 2] = alphabet[uint8(value[i + 12] & 0x0f)];
+        }
+        return string(str);
+    }
+
+    function stringArrayToString(
+        string[] memory _array
+    ) internal pure returns (string memory) {
+        if (_array.length == 0) {
+            return "";
+        }
+
+        string memory result = "";
+        for (uint256 i = 0; i < _array.length; i++) {
+            result = string(
+                abi.encodePacked(result, i == 0 ? "" : ",", _array[i])
+            );
+        }
+        return result;
+    }
+
+    // Funzioni per il parsing dei dati ricevuti
+    function parseReceivedData(
+        string memory data
+    )
+        internal
+        pure
+        returns (
+            uint256 formId,
+            string memory username,
+            string memory email,
+            address submitter,
+            uint256 timestamp,
+            string[] memory answers,
+            string[] memory proofs
+        )
+    {
+        // Split della stringa per "|"
+        string[] memory parts = splitString(data, "|");
+
+        require(parts.length >= 7, "Invalid data format");
+
+        // Parse FormID (rimuove "FormID:")
+        formId = stringToUint256(
+            substring(parts[0], 7, bytes(parts[0]).length)
+        );
+
+        // Parse Username (rimuove "Username:")
+        username = substring(parts[1], 9, bytes(parts[1]).length);
+
+        // Parse Email (rimuove "Email:")
+        email = substring(parts[2], 6, bytes(parts[2]).length);
+
+        // Parse Submitter (rimuove "Submitter:")
+        submitter = stringToAddress(
+            substring(parts[3], 10, bytes(parts[3]).length)
+        );
+
+        // Parse Timestamp (rimuove "Timestamp:")
+        timestamp = stringToUint256(
+            substring(parts[4], 10, bytes(parts[4]).length)
+        );
+
+        // Parse Answers (rimuove "Answers:")
+        string memory answersStr = substring(
+            parts[5],
+            8,
+            bytes(parts[5]).length
+        );
+        answers = splitString(answersStr, ",");
+
+        // Parse Proofs (rimuove "Proofs:")
+        string memory proofsStr = substring(
+            parts[6],
+            7,
+            bytes(parts[6]).length
+        );
+        proofs = splitString(proofsStr, ",");
+
+        // TODO: save proofs in corrects mapping position
+    }
+
+    function splitString(
+        string memory str,
+        string memory delimiter
+    ) internal pure returns (string[] memory) {
+        bytes memory strBytes = bytes(str);
+        bytes memory delimBytes = bytes(delimiter);
+
+        if (strBytes.length == 0) {
+            string[] memory empty = new string[](0);
+            return empty;
+        }
+
+        // Conta il numero di parti
+        uint256 count = 1;
+        for (uint256 i = 0; i <= strBytes.length - delimBytes.length; i++) {
+            bool found = true;
+            for (uint256 j = 0; j < delimBytes.length; j++) {
+                if (strBytes[i + j] != delimBytes[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                count++;
+                i += delimBytes.length - 1;
+            }
+        }
+
+        string[] memory parts = new string[](count);
+        uint256 partIndex = 0;
+        uint256 startIndex = 0;
+
+        for (uint256 i = 0; i <= strBytes.length - delimBytes.length; i++) {
+            bool found = true;
+            for (uint256 j = 0; j < delimBytes.length; j++) {
+                if (strBytes[i + j] != delimBytes[j]) {
+                    found = false;
+                    break;
+                }
+            }
+            if (found) {
+                parts[partIndex] = substring(str, startIndex, i);
+                partIndex++;
+                startIndex = i + delimBytes.length;
+                i += delimBytes.length - 1;
+            }
+        }
+
+        // Aggiungi l'ultima parte
+        parts[partIndex] = substring(str, startIndex, strBytes.length);
+
+        return parts;
+    }
+
+    function substring(
+        string memory str,
+        uint256 startIndex,
+        uint256 endIndex
+    ) internal pure returns (string memory) {
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(endIndex - startIndex);
+
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            result[i - startIndex] = strBytes[i];
+        }
+
+        return string(result);
+    }
+
+    function stringToUint256(
+        string memory str
+    ) internal pure returns (uint256) {
+        bytes memory b = bytes(str);
+        uint256 result = 0;
+
+        for (uint256 i = 0; i < b.length; i++) {
+            uint8 digit = uint8(b[i]);
+            require(digit >= 48 && digit <= 57, "Invalid number");
+            result = result * 10 + (digit - 48);
+        }
+
+        return result;
+    }
+
+    function stringToAddress(
+        string memory str
+    ) internal pure returns (address) {
+        bytes memory b = bytes(str);
+        require(b.length == 42, "Invalid address length");
+        require(b[0] == "0" && b[1] == "x", "Invalid address format");
+
+        uint160 result = 0;
+        for (uint256 i = 2; i < 42; i++) {
+            uint8 digit = uint8(b[i]);
+            uint8 value;
+
+            if (digit >= 48 && digit <= 57) {
+                value = digit - 48;
+            } else if (digit >= 97 && digit <= 102) {
+                value = digit - 87;
+            } else if (digit >= 65 && digit <= 70) {
+                value = digit - 55;
+            } else {
+                revert("Invalid hex character");
+            }
+
+            result = result * 16 + value;
+        }
+
+        return address(result);
     }
 }
