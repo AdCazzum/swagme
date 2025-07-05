@@ -1,0 +1,6 @@
+[submodule "contracts/hello-world-chain-layerzero/lib/devtools"]
+	path = contracts/hello-world-chain-layerzero/lib/devtools
+	url = https://github.com/LayerZero-Labs/devtools
+[submodule "contracts/hello-world-chain-layerzero/lib/layerzero-v2"]
+	path = contracts/hello-world-chain-layerzero/lib/layerzero-v2
+	url = https://github.com/LayerZero-Labs/layerzero-v2
