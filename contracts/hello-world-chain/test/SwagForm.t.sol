@@ -33,13 +33,18 @@ contract SwagFormTest is Test {
         isRequired[0] = true;
         isRequired[1] = false;
         
+        bool[] memory requiresProof = new bool[](2);
+        requiresProof[0] = false;
+        requiresProof[1] = false;
+        
         // User1 crea un form
         vm.prank(user1);
         swagForm.createForm(
             "User1 Survey",
             "A survey by user1",
             questions,
-            isRequired
+            isRequired,
+            requiresProof
         );
         
         // User2 crea un altro form
@@ -48,7 +53,8 @@ contract SwagFormTest is Test {
             "User2 Survey",
             "A survey by user2",
             questions,
-            isRequired
+            isRequired,
+            requiresProof
         );
         
         assertEq(swagForm.totalForms(), 2);
@@ -69,8 +75,11 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         vm.prank(user1);
-        swagForm.createForm("Test Form", "Test Description", questions, isRequired);
+        swagForm.createForm("Test Form", "Test Description", questions, isRequired, requiresProof);
         
         (
             string memory title,
@@ -97,16 +106,19 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea due form
         vm.prank(user1);
-        swagForm.createForm("Form 1", "Description 1", questions, isRequired);
+        swagForm.createForm("Form 1", "Description 1", questions, isRequired, requiresProof);
         
         vm.prank(user1);
-        swagForm.createForm("Form 2", "Description 2", questions, isRequired);
+        swagForm.createForm("Form 2", "Description 2", questions, isRequired, requiresProof);
         
         // User2 crea un form
         vm.prank(user2);
-        swagForm.createForm("Form 3", "Description 3", questions, isRequired);
+        swagForm.createForm("Form 3", "Description 3", questions, isRequired, requiresProof);
         
         // Verifica che user1 abbia 2 form
         uint256[] memory user1Forms = swagForm.getUserForms(user1);
@@ -130,9 +142,12 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea un form
         vm.prank(user1);
-        swagForm.createForm("Original Title", "Original Description", questions, isRequired);
+        swagForm.createForm("Original Title", "Original Description", questions, isRequired, requiresProof);
         
         // User1 può modificare il suo form
         vm.prank(user1);
@@ -173,9 +188,13 @@ contract SwagFormTest is Test {
         isRequired[0] = true;
         isRequired[1] = false;
         
+        bool[] memory requiresProof = new bool[](2);
+        requiresProof[0] = false;
+        requiresProof[1] = false;
+        
         // User1 crea un form
         vm.prank(user1);
-        swagForm.createForm("Public Form", "Everyone can submit", questions, isRequired);
+        swagForm.createForm("Public Form", "Everyone can submit", questions, isRequired, requiresProof);
         
         // User2 sottomette al form di user1
         string[] memory answers = new string[](2);
@@ -212,9 +231,12 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea un form
         vm.prank(user1);
-        swagForm.createForm("Test Form", "Test", questions, isRequired);
+        swagForm.createForm("Test Form", "Test", questions, isRequired, requiresProof);
         
         // User2 e User3 sottomettono
         string[] memory answers = new string[](1);
@@ -243,12 +265,15 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea due form
         vm.prank(user1);
-        swagForm.createForm("Form 1", "Description 1", questions, isRequired);
+        swagForm.createForm("Form 1", "Description 1", questions, isRequired, requiresProof);
         
         vm.prank(user2);
-        swagForm.createForm("Form 2", "Description 2", questions, isRequired);
+        swagForm.createForm("Form 2", "Description 2", questions, isRequired, requiresProof);
         
         // Disattiva il secondo form
         vm.prank(user2);
@@ -278,16 +303,19 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea due form
         vm.prank(user1);
-        swagForm.createForm("Form 1", "Description 1", questions, isRequired);
+        swagForm.createForm("Form 1", "Description 1", questions, isRequired, requiresProof);
         
         vm.prank(user1);
-        swagForm.createForm("Form 2", "Description 2", questions, isRequired);
+        swagForm.createForm("Form 2", "Description 2", questions, isRequired, requiresProof);
         
         // User2 crea un form
         vm.prank(user2);
-        swagForm.createForm("Form 3", "Description 3", questions, isRequired);
+        swagForm.createForm("Form 3", "Description 3", questions, isRequired, requiresProof);
         
         // User2 sottomette ai form di user1
         string[] memory answers = new string[](1);
@@ -321,9 +349,12 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea un form
         vm.prank(user1);
-        swagForm.createForm("Test Form", "Test", questions, isRequired);
+        swagForm.createForm("Test Form", "Test", questions, isRequired, requiresProof);
         
         // User1 disattiva il form
         vm.prank(user1);
@@ -344,8 +375,11 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         vm.prank(user1);
-        swagForm.createForm("Test Form", "Test", questions, isRequired);
+        swagForm.createForm("Test Form", "Test", questions, isRequired, requiresProof);
         
         string[] memory answers = new string[](1);
         answers[0] = "Test answer";
@@ -364,8 +398,11 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         vm.prank(user1);
-        swagForm.createForm("Test Form", "Test", questions, isRequired);
+        swagForm.createForm("Test Form", "Test", questions, isRequired, requiresProof);
         
         string[] memory answers = new string[](1);
         answers[0] = "Test answer";
@@ -384,12 +421,15 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](1);
+        requiresProof[0] = false;
+        
         // User1 crea due form
         vm.prank(user1);
-        swagForm.createForm("Form 1", "Test 1", questions, isRequired);
+        swagForm.createForm("Form 1", "Test 1", questions, isRequired, requiresProof);
         
         vm.prank(user1);
-        swagForm.createForm("Form 2", "Test 2", questions, isRequired);
+        swagForm.createForm("Form 2", "Test 2", questions, isRequired, requiresProof);
         
         // User2 può sottomettere alla stesso email a entrambi i form
         string[] memory answers = new string[](1);
@@ -408,11 +448,11 @@ contract SwagFormTest is Test {
     function testFormValidation() public {
         // Titolo vuoto
         vm.expectRevert("Title is required");
-        swagForm.createForm("", "Description", new string[](1), new bool[](1));
+        swagForm.createForm("", "Description", new string[](1), new bool[](1), new bool[](1));
         
         // Nessuna domanda
         vm.expectRevert("At least one question is required");
-        swagForm.createForm("Title", "Description", new string[](0), new bool[](0));
+        swagForm.createForm("Title", "Description", new string[](0), new bool[](0), new bool[](0));
         
         // Lunghezza diversa tra domande e flag required
         string[] memory questions = new string[](2);
@@ -422,8 +462,23 @@ contract SwagFormTest is Test {
         bool[] memory isRequired = new bool[](1);
         isRequired[0] = true;
         
+        bool[] memory requiresProof = new bool[](2);
+        requiresProof[0] = false;
+        requiresProof[1] = false;
+        
         vm.expectRevert("Questions and required flags must have same length");
-        swagForm.createForm("Title", "Description", questions, isRequired);
+        swagForm.createForm("Title", "Description", questions, isRequired, requiresProof);
+        
+        // Test: Lunghezza diversa per requiresProof
+        bool[] memory isRequiredCorrect = new bool[](2);
+        isRequiredCorrect[0] = true;
+        isRequiredCorrect[1] = false;
+        
+        bool[] memory requiresProofWrong = new bool[](1);
+        requiresProofWrong[0] = false;
+        
+        vm.expectRevert("Questions and proof flags must have same length");
+        swagForm.createForm("Title", "Description", questions, isRequiredCorrect, requiresProofWrong);
     }
     
     function testSubmissionValidation() public {
@@ -435,8 +490,12 @@ contract SwagFormTest is Test {
         isRequired[0] = true;
         isRequired[1] = false;
         
+        bool[] memory requiresProof = new bool[](2);
+        requiresProof[0] = false;
+        requiresProof[1] = false;
+        
         vm.prank(user1);
-        swagForm.createForm("Test Form", "Test", questions, isRequired);
+        swagForm.createForm("Test Form", "Test", questions, isRequired, requiresProof);
         
         // Username vuoto
         string[] memory answers = new string[](2);
@@ -481,5 +540,55 @@ contract SwagFormTest is Test {
         vm.prank(user1);
         vm.expectRevert("Form does not exist");
         swagForm.getForm(999);
+    }
+    
+    function testTwitterProofFunctionality() public {
+        string[] memory questions = new string[](3);
+        questions[0] = "What is your name?";
+        questions[1] = "Share your tweet URL";
+        questions[2] = "Any comments?";
+        
+        bool[] memory isRequired = new bool[](3);
+        isRequired[0] = true;
+        isRequired[1] = true;
+        isRequired[2] = false;
+        
+        bool[] memory requiresProof = new bool[](3);
+        requiresProof[0] = false; // Name - no proof
+        requiresProof[1] = true;  // Tweet URL - requires proof
+        requiresProof[2] = false; // Comments - no proof
+        
+        // User1 crea un form con requirements di proof
+        vm.prank(user1);
+        swagForm.createForm("Twitter Proof Form", "Form with Twitter verification", questions, isRequired, requiresProof);
+        
+        // Verifica che i proof requirements siano salvati correttamente
+        bool[] memory storedRequirements = swagForm.getProofRequirements(0);
+        assertEq(storedRequirements.length, 3);
+        assertFalse(storedRequirements[0]); // No proof for name
+        assertTrue(storedRequirements[1]);  // Proof required for tweet
+        assertFalse(storedRequirements[2]); // No proof for comments
+        
+        // Verifica che le domande siano salvate correttamente
+        SwagForm.Question[] memory formQuestions = swagForm.getFormQuestions(0);
+        assertEq(formQuestions.length, 3);
+        assertEq(formQuestions[0].questionText, "What is your name?");
+        assertFalse(formQuestions[0].requiresProof);
+        assertEq(formQuestions[1].questionText, "Share your tweet URL");
+        assertTrue(formQuestions[1].requiresProof);
+        assertEq(formQuestions[2].questionText, "Any comments?");
+        assertFalse(formQuestions[2].requiresProof);
+        
+        // Test che inizialmente nessuna proof è verificata
+        assertFalse(swagForm.isProofVerified(0, user2, 1));
+        assertFalse(swagForm.areAllProofsVerified(0, user2));
+        
+        // Simula la verifica di una proof (normalmente sarebbe fatto dal contratto Flare)
+        vm.prank(user1); // Solo per testing - in produzione sarebbe il contratto autorizzato
+        swagForm.setProofVerified(0, user2, 1, true);
+        
+        // Verifica che la proof sia ora marcata come verificata
+        assertTrue(swagForm.isProofVerified(0, user2, 1));
+        assertTrue(swagForm.areAllProofsVerified(0, user2));
     }
 } 

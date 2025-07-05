@@ -373,7 +373,7 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
                 <span>Stand/Kiosk Display</span>
               </h3>
               <p className="text-sm text-gray-600 mb-3">
-                Perfect for events and booths - shows only the QR code in fullscreen
+                Perfect for events and booths - shows QR code in fullscreen. Forms with Twitter proof requirements will guide users through verification.
               </p>
               <div className="space-y-2">
                 <Button
@@ -442,6 +442,7 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
                 <li>• They'll need a Web3 wallet to submit responses</li>
                 <li>• All submissions are stored on the blockchain</li>
                 <li>• Use Kiosk Mode for events and stands</li>
+                <li>• Twitter Proof verifies tweet existence via Flare</li>
               </ul>
             </div>
           </CardContent>
