@@ -3,10 +3,13 @@ import { Page } from "@/components/PageLayout";
 import { Scan } from "@/components/Scan";
 import { UserInfo } from "@/components/UserInfo";
 import { Verify } from "@/components/Verify";
+import { VerificationProvider } from "@/contexts/VerificationContext";
 import { Marble, TopBar } from "@worldcoin/mini-apps-ui-kit-react";
 
 export default async function Home() {
   const session = await auth();
+
+  console.log("Session:", session);
 
   return (
     <>
@@ -23,8 +26,10 @@ export default async function Home() {
       </Page.Header>
       <Page.Main className="flex flex-col items-center justify-start gap-4 mb-16">
         <UserInfo />
-        <Verify />
-        <Scan />
+        <VerificationProvider>
+          <Verify />
+          <Scan />
+        </VerificationProvider>
       </Page.Main>
     </>
   );

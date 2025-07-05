@@ -74,6 +74,7 @@ const validateSubmission = ({
   formId,
   username,
   email,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   answers,
 }: FormSubmission): void => {
   if (!formId?.trim()) throw new ValidationError("Form ID is required");
@@ -81,8 +82,8 @@ const validateSubmission = ({
   if (!email?.trim()) throw new ValidationError("Email is required");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     throw new ValidationError("Invalid email format");
-  if (!Array.isArray(answers) || answers.length === 0)
-    throw new ValidationError("At least one answer is required");
+  //   if (!Array.isArray(answers) || answers.length === 0)
+  //     throw new ValidationError("At least one answer is required");
 };
 
 export const getFormQuestions = async (
@@ -169,9 +170,9 @@ export const submitFormToContract = async (
     .map((answer) => String(answer).trim())
     .filter((answer) => answer.length > 0);
 
-  if (cleanAnswers.length === 0) {
-    throw new ValidationError("At least one non-empty answer is required");
-  }
+  //   if (cleanAnswers.length === 0) {
+  //     throw new ValidationError("At least one non-empty answer is required");
+  //   }
 
   try {
     const transactionResult = await MiniKit.commandsAsync.sendTransaction({
@@ -180,7 +181,12 @@ export const submitFormToContract = async (
           address: CONTRACT_ADDRESS,
           abi: SwagFormABI.filter((item) => item.name === "submitForm"),
           functionName: "submitForm",
-          args: [BigInt(formId), username.trim(), email.trim(), cleanAnswers],
+          args: [
+            BigInt(formId),
+            username.trim(),
+            email.trim(),
+            cleanAnswers ?? [],
+          ],
         },
       ],
     });

@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { Navigation } from "@/components/Navigation";
+// import { Navigation } from "@/components/Navigation";
 import { Page } from "@/components/PageLayout";
 
 export default async function TabsLayout({
@@ -17,7 +17,8 @@ export default async function TabsLayout({
     <Page>
       {children}
       <Page.Footer className="px-0 fixed bottom-0 w-full bg-white">
-        <Navigation />
+        {/* <Navigation /> */}
+        <></>
       </Page.Footer>
     </Page>
   );

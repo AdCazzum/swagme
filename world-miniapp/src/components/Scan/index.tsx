@@ -5,6 +5,7 @@ import { OnResultFunction } from "react-qr-reader";
 import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
 import { useMiniKit } from "@worldcoin/minikit-js/minikit-provider";
 import { SurveyForm } from "../SurveyForm";
+import { useVerification } from "../../contexts/VerificationContext";
 
 const QrScanner = dynamic(
   () => import("react-qr-reader").then((mod) => mod.QrReader),
@@ -12,6 +13,7 @@ const QrScanner = dynamic(
 );
 
 export const Scan = () => {
+  const { isVerified } = useVerification();
   const [buttonState, setButtonState] = useState<
     "pending" | "success" | "failed" | undefined
   >(undefined);
@@ -97,7 +99,7 @@ export const Scan = () => {
   );
 
   const startScanning = useCallback(async () => {
-    if (scanning) return;
+    if (scanning || !isVerified) return;
 
     setScanning(true);
     setButtonState("pending");
@@ -121,7 +123,7 @@ export const Scan = () => {
     if (!isMicOn) {
       await toggleMicrophone();
     }
-  }, [scanning, isMicOn, toggleMicrophone]);
+  }, [scanning, isMicOn, toggleMicrophone, isVerified]);
 
   useEffect(() => {
     const autoEnableMicrophone = async () => {
@@ -145,6 +147,11 @@ export const Scan = () => {
     setShowSurveyForm(false);
     setSurveyId(null);
     setButtonState(undefined);
+    // Show a brief success message if returning from a completed survey
+    setButtonState("success");
+    setTimeout(() => {
+      setButtonState(undefined);
+    }, 2000);
   }, []);
 
   if (showSurveyForm && surveyId) {
@@ -155,10 +162,44 @@ export const Scan = () => {
     <div className="flex flex-col gap-4 rounded-xl w-full border-2 border-gray-200 p-4">
       <div className="flex flex-row items-center justify-between">
         <p className="text-lg font-semibold">QR Scanner</p>
-        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-          Survey Access
+        <div className={`text-xs px-2 py-1 rounded-full ${
+          isVerified 
+            ? "text-green-600 bg-green-100" 
+            : "text-gray-500 bg-gray-100"
+        }`}>
+          {isVerified ? "Step 2: Survey Access" : "Step 2: Locked"}
         </div>
       </div>
+
+      {!isVerified && (
+        <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-amber-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-amber-800">
+                Verification Required
+              </h3>
+              <div className="mt-2 text-sm text-amber-700">
+                <p>
+                  Please complete the identity verification above before you can scan QR codes to access surveys.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {permissionError && (
         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
@@ -192,19 +233,26 @@ export const Scan = () => {
         label={{
           failed: "Failed to scan",
           pending: "Scanning",
-          success: "Scanned",
+          success: showSurveyForm
+            ? "Opening survey..."
+            : "Survey completed successfully!",
         }}
         state={buttonState}
         className="w-full"
       >
         <Button
           onClick={startScanning}
-          disabled={buttonState === "pending" || scanning}
+          disabled={buttonState === "pending" || scanning || !isVerified}
           size="lg"
-          variant="tertiary"
+          variant={isVerified ? "tertiary" : "secondary"}
           className="w-full"
         >
-          {scanning ? "Scanning..." : "Scan QR Code"}
+          {!isVerified 
+            ? "Complete Verification First" 
+            : scanning 
+            ? "Scanning..." 
+            : "Scan QR Code"
+          }
         </Button>
 
         {scanning && (

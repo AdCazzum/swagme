@@ -1,6 +1,11 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
+import {
+  Button,
+  LiveFeedback,
+  Marble,
+} from "@worldcoin/mini-apps-ui-kit-react";
+import { useSession } from "next-auth/react";
 import {
   getFormQuestions,
   getFormInfo,
@@ -10,6 +15,7 @@ import {
   ValidationError,
 } from "../../services/contract";
 import { useSubmitForm } from "../../hooks/useSubmitForm";
+import { SurveySuccess } from "../SurveySuccess";
 
 interface SurveyFormProps {
   formId: string;
@@ -17,6 +23,7 @@ interface SurveyFormProps {
 }
 
 export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
+  const session = useSession();
   const [formInfo, setFormInfo] = useState<FormInfo | null>(null);
   const [questions, setQuestions] = useState<FormQuestion[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
@@ -66,6 +73,13 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
 
     if (formId) loadFormData();
   }, [formId]);
+
+  // Auto-populate username from session
+  useEffect(() => {
+    if (session?.data?.user?.username && !username) {
+      setUsername(session.data.user.username);
+    }
+  }, [session?.data?.user?.username, username]);
 
   const handleAnswerChange = (questionIndex: number, value: string) => {
     const newAnswers = [...answers];
@@ -117,14 +131,37 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
     }
   };
 
-  useEffect(() => {
-    if (isConfirmed) {
-      const timer = setTimeout(() => {
-        onBack();
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isConfirmed, onBack]);
+  // Remove the automatic redirect after confirmation
+  // useEffect(() => {
+  //   if (isConfirmed) {
+  //     const timer = setTimeout(() => {
+  //       onBack();
+  //     }, 3000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isConfirmed, onBack]);
+
+  // Success page after form submission
+  if (isConfirmed && transactionId) {
+    return (
+      <SurveySuccess
+        formInfo={formInfo}
+        username={username}
+        transactionId={transactionId}
+        onBackToScanner={onBack}
+        onSubmitAnother={() => {
+          // Reset form data, but keep username if it's from session
+          setAnswers(new Array(questions.length).fill(""));
+          if (!session?.data?.user?.username) {
+            setUsername("");
+          }
+          setEmail("");
+          setError(null);
+          resetSubmit();
+        }}
+      />
+    );
+  }
 
   if (loading) {
     return (
@@ -225,17 +262,43 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
         <h3 className="text-lg font-medium text-gray-900">Your Information</h3>
         <div className="bg-white border-2 border-gray-200 rounded-xl p-4">
           <label className="block text-sm font-medium text-gray-900 mb-2">
-            Username <span className="text-red-500">*</span>
+            <div className="flex items-center gap-2">
+              Username <span className="text-red-500">*</span>
+              {session?.data?.user?.username && (
+                <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full">
+                  Auto-filled from World ID
+                </span>
+              )}
+            </div>
           </label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            disabled={isSubmitting || isConfirming}
-            required
-          />
+          <div className="flex items-center gap-3">
+            {session?.data?.user?.profilePictureUrl && (
+              <Marble
+                src={session.data.user.profilePictureUrl}
+                className="w-10 h-10"
+              />
+            )}
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your username"
+              className={`flex-1 px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                session?.data?.user?.username
+                  ? "border-green-300 bg-green-50 text-green-800"
+                  : "border-gray-300"
+              }`}
+              disabled={isSubmitting || isConfirming}
+              required
+              readOnly={!!session?.data?.user?.username}
+            />
+          </div>
+          {session?.data?.user?.username && (
+            <p className="mt-1 text-xs text-green-600">
+              ✓ This field has been automatically filled with your World ID
+              username
+            </p>
+          )}
         </div>
         <div className="bg-white border-2 border-gray-200 rounded-xl p-4">
           <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -342,10 +405,23 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
                 />
               </svg>
             </div>
-            <div className="ml-3">
+            <div className="ml-3 flex-1">
               <h3 className="text-sm font-medium text-red-800">Error</h3>
               <div className="mt-2 text-sm text-red-700">
                 <p>{error || errorMessage}</p>
+              </div>
+              <div className="mt-3">
+                <Button
+                  onClick={() => {
+                    setError(null);
+                    resetSubmit();
+                  }}
+                  variant="secondary"
+                  size="sm"
+                  className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300"
+                >
+                  Try Again
+                </Button>
               </div>
             </div>
           </div>
@@ -396,7 +472,9 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
               ? "Processing transaction..."
               : "Processing...",
             success: isConfirmed
-              ? "Transaction confirmed on blockchain!"
+              ? "Transaction confirmed!"
+              : transactionId
+              ? "Transaction submitted!"
               : "Submitted successfully!",
           }}
           state={
@@ -404,7 +482,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
               ? "failed"
               : isSubmitting || isConfirming
               ? "pending"
-              : isConfirmed
+              : transactionId && !isConfirmed
               ? "success"
               : undefined
           }
@@ -421,8 +499,8 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
               ? "Submitting..."
               : isConfirming
               ? "Confirming..."
-              : isConfirmed
-              ? "Confirmed!"
+              : transactionId && !isConfirmed
+              ? "Waiting for confirmation..."
               : "Submit to Blockchain"}
           </Button>
         </LiveFeedback>
