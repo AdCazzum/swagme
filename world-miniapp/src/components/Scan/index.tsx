@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { OnResultFunction } from "react-qr-reader";
 import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
 import { useMiniKit } from "@worldcoin/minikit-js/minikit-provider";
+import { SurveyForm } from "../SurveyForm";
 
 const QrScanner = dynamic(
   () => import("react-qr-reader").then((mod) => mod.QrReader),
@@ -20,6 +21,7 @@ export const Scan = () => {
   const [isMicOn, setIsMicOn] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
+  const [showSurveyForm, setShowSurveyForm] = useState(false);
   const { isInstalled } = useMiniKit();
 
   const requestMicrophonePermission = useCallback(async () => {
@@ -97,10 +99,11 @@ export const Scan = () => {
         setScanning(false);
         setButtonState("success");
 
-        // Reset state after showing success
+        // Mostra il form delle domande dopo un breve delay
         setTimeout(() => {
+          setShowSurveyForm(true);
           setButtonState(undefined);
-        }, 2000);
+        }, 1500);
         return;
       }
 
@@ -165,13 +168,30 @@ export const Scan = () => {
     }
   }, [scanning]);
 
+  // Funzione per tornare alla schermata di scansione
+  const handleBackToScan = useCallback(() => {
+    setShowSurveyForm(false);
+    setSurveyId(null);
+    setButtonState(undefined);
+  }, []);
+
+  // Se dobbiamo mostrare il form delle domande
+  if (showSurveyForm && surveyId) {
+    return <SurveyForm formId={surveyId} onBack={handleBackToScan} />;
+  }
+
   return (
-    <div className="grid w-full gap-4">
-      <p className="text-lg font-semibold">Scan</p>
+    <div className="flex flex-col gap-4 rounded-xl w-full border-2 border-gray-200 p-4">
+      <div className="flex flex-row items-center justify-between">
+        <p className="text-lg font-semibold">QR Scanner</p>
+        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+          Survey Access
+        </div>
+      </div>
 
       {/* Permission Error Display */}
       {permissionError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg
@@ -310,11 +330,22 @@ export const Scan = () => {
       </LiveFeedback>
 
       {/* Result Display */}
-      {surveyId && (
-        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-700 font-bold text-sm">
-            Scanned: {surveyId}
-          </p>
+      {surveyId && !showSurveyForm && (
+        <div className="mt-2 space-y-3">
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <p className="text-green-700 font-bold text-sm">
+              QR Code Scanned: {surveyId}
+            </p>
+          </div>
+
+          <Button
+            onClick={() => setShowSurveyForm(true)}
+            size="lg"
+            variant="primary"
+            className="w-full"
+          >
+            Open Survey
+          </Button>
         </div>
       )}
     </div>
