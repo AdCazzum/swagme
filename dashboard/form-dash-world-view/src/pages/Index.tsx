@@ -65,17 +65,43 @@ const Index = () => {
   // For dashboard and admin views, require wallet connection
   if (!isConnected || !account) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              SwagForm
-            </h1>
-            <p className="text-gray-600 text-lg">
-              Web3 Form Builder on World Chain
-            </p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+        {/* Simplified Header for Connection */}
+        <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-purple-50/30 to-blue-50/30"></div>
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-center">
+              {/* Centered Branding */}
+              <div className="flex items-center space-x-3">
+                {/* Logo */}
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <span className="text-white font-bold text-xl">S</span>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+                </div>
+                
+                {/* Brand Text */}
+                <div className="flex flex-col items-center">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 bg-clip-text text-transparent leading-tight">
+                    SwagForm
+                  </h1>
+                  <p className="text-gray-600 text-lg text-center">
+                    Web3 Form Builder on World Chain
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <WalletConnect />
+          {/* Subtle shadow enhancement */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+        </header>
+
+        {/* Connection Content */}
+        <div className="flex items-center justify-center p-4 min-h-[calc(100vh-120px)]">
+          <div className="w-full max-w-md">
+            <WalletConnect />
+          </div>
         </div>
       </div>
     );
@@ -83,21 +109,83 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      {/* Full Header - Only when connected */}
+      <header className="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 sticky top-0 z-50 shadow-sm">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-purple-50/30 to-blue-50/30"></div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
+            {/* Left Side - Branding */}
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                SwagForm
-              </h1>
-              <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                World Chain
-              </span>
+              <div className="flex items-center space-x-3">
+                {/* Logo */}
+                <div className="relative">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-200">
+                    <span className="text-white font-bold text-lg">S</span>
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+                </div>
+                
+                {/* Brand Text */}
+                <div className="flex flex-col">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 bg-clip-text text-transparent leading-tight">
+                    SwagForm
+                  </h1>
+                  <div className="flex items-center space-x-2 -mt-1">
+                    <span className="text-xs text-gray-500 font-medium">Web3 Form Builder</span>
+                    <div className="w-1 h-1 bg-gray-300 rounded-full"></div>
+                    <span className="text-xs text-green-600 font-medium">Live</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Network Badge */}
+              <div className="hidden sm:flex items-center space-x-2 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full px-3 py-1.5 shadow-sm">
+                <div className="flex items-center space-x-1.5">
+                  <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
+                    World Chain
+                  </span>
+                </div>
+              </div>
             </div>
-            <WalletConnect />
+
+            {/* Right Side - Wallet Connection */}
+            <div className="flex items-center space-x-4">
+              {/* Mobile Network Badge */}
+              <div className="sm:hidden bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full px-2 py-1">
+                <div className="flex items-center space-x-1">
+                  <div className="w-1.5 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium bg-gradient-to-r from-blue-700 to-purple-700 bg-clip-text text-transparent">
+                    WC
+                  </span>
+                </div>
+              </div>
+
+              {/* Enhanced Wallet Connect */}
+              <div className="relative">
+                <WalletConnect />
+              </div>
+            </div>
           </div>
+
+          {/* Optional: Breadcrumb/Navigation hints */}
+          {currentView !== 'dashboard' && (
+            <div className="mt-3 pt-3 border-t border-gray-200/50">
+              <div className="flex items-center space-x-2 text-sm">
+                <span className="text-gray-500">Dashboard</span>
+                <span className="text-gray-300">→</span>
+                <span className="text-gray-700 font-medium">
+                  {currentView === 'create-form' && 'Create New Form'}
+                  {currentView === 'view-form' && 'Share Form'}
+                  {currentView === 'view-submissions' && 'View Submissions'}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Subtle shadow enhancement */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
       </header>
 
       {/* Main Content */}

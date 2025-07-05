@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 
@@ -52,6 +51,13 @@ export const useWallet = () => {
   const checkConnection = useCallback(async () => {
     if (typeof window.ethereum !== 'undefined') {
       try {
+        // Check if user explicitly disconnected
+        const wasDisconnected = localStorage.getItem('swagform_wallet_disconnected');
+        if (wasDisconnected === 'true') {
+          console.log('User previously disconnected, not auto-reconnecting');
+          return;
+        }
+
         const provider = new ethers.BrowserProvider(window.ethereum);
         const accounts = await provider.listAccounts();
         const network = await provider.getNetwork();
@@ -82,6 +88,9 @@ export const useWallet = () => {
     setWalletState(prev => ({ ...prev, isLoading: true }));
 
     try {
+      // Clear disconnect flag when user manually connects
+      localStorage.removeItem('swagform_wallet_disconnected');
+      
       // Request account access
       await window.ethereum.request({ method: 'eth_requestAccounts' });
       
@@ -90,7 +99,7 @@ export const useWallet = () => {
       const account = await signer.getAddress();
       const network = await provider.getNetwork();
 
-      // Check if we're on a supported World Chain network
+      // Check if we're on a supported chain
       const chainId = Number(network.chainId);
       if (!isWorldChain(chainId)) {
         await switchToWorldChain(WORLD_CHAIN_MAINNET_ID);
@@ -167,15 +176,61 @@ export const useWallet = () => {
     return 'Unknown Network';
   };
 
-  const disconnectWallet = () => {
-    setWalletState({
-      account: null,
-      provider: null,
-      signer: null,
-      isConnected: false,
-      isLoading: false,
-      chainId: null,
-    });
+  const disconnectWallet = async () => {
+    console.log('Disconnecting wallet...');
+    
+    try {
+      // Set disconnect flag to prevent auto-reconnection
+      localStorage.setItem('swagform_wallet_disconnected', 'true');
+      
+      // Clear wallet state immediately
+      setWalletState({
+        account: null,
+        provider: null,
+        signer: null,
+        isConnected: false,
+        isLoading: false,
+        chainId: null,
+      });
+      
+      // Try to disconnect from MetaMask if possible
+      if (window.ethereum && window.ethereum.request) {
+        try {
+          // For MetaMask, we can try to revoke permissions
+          await window.ethereum.request({
+            method: 'wallet_revokePermissions',
+            params: [{ eth_accounts: {} }],
+          });
+          console.log('Wallet permissions revoked');
+        } catch (revokeError) {
+          console.log('Could not revoke permissions (might not be supported):', revokeError.message);
+          
+          // Alternative: try to request account removal
+          try {
+            await window.ethereum.request({
+              method: 'wallet_requestPermissions',
+              params: [{ eth_accounts: {} }],
+            });
+          } catch (permError) {
+            console.log('Alternative disconnect method also failed');
+          }
+        }
+      }
+      
+      // Clear any localStorage data
+      try {
+        localStorage.removeItem('walletconnect');
+        localStorage.removeItem('WALLETCONNECT_DEEPLINK_CHOICE');
+        localStorage.removeItem('walletConnect');
+      } catch (error) {
+        console.warn('Error clearing localStorage:', error);
+      }
+      
+      console.log('Wallet disconnected successfully');
+      
+    } catch (error) {
+      console.error('Error during wallet disconnection:', error);
+    }
   };
 
   useEffect(() => {

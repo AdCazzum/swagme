@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useWallet } from '@/hooks/useWallet';
 import { Button } from '@/components/ui/button';
@@ -79,19 +78,21 @@ const WalletConnect = () => {
 
   // Se è connesso, mostra i controlli del wallet
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center space-x-3">
       {!isCorrectChain && (
-        <Card className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200">
+        <Card className="p-3 bg-gradient-to-r from-amber-50 to-orange-50 border-amber-200 shadow-md">
           <div className="flex items-center space-x-3">
-            <AlertCircle className="w-5 h-5 text-amber-600" />
-            <div className="flex-1">
-              <p className="text-sm font-medium text-amber-800">Wrong Network</p>
-              <p className="text-xs text-amber-600">Please switch to World Chain</p>
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="w-4 h-4 text-amber-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-amber-800">Wrong Network</p>
+                <p className="text-xs text-amber-600">Switch to World Chain</p>
+              </div>
             </div>
             <Button
               size="sm"
               onClick={() => switchToWorldChain()}
-              className="bg-amber-600 hover:bg-amber-700 text-white"
+              className="bg-amber-600 hover:bg-amber-700 text-white text-xs px-3 py-1 h-auto"
             >
               Switch
             </Button>
@@ -100,49 +101,81 @@ const WalletConnect = () => {
       )}
 
       <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
-          <CheckCircle className="w-5 h-5 text-green-500" />
-          <Badge variant="secondary" className="bg-green-100 text-green-800">
-            {formatAddress(account)}
-          </Badge>
+        {/* User Badge */}
+        <div className="flex items-center space-x-2 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg px-3 py-2 shadow-sm">
+          <div className="flex items-center space-x-2">
+            <div className="relative">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            </div>
+            <div className="flex flex-col">
+              <Badge variant="secondary" className="bg-white/80 text-gray-800 font-mono text-xs px-2 py-0.5 h-auto">
+                {formatAddress(account)}
+              </Badge>
+            </div>
+          </div>
         </div>
 
         {/* Network Selector */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="flex items-center space-x-2">
-              <Badge 
-                variant={isTestnet ? "destructive" : "default"} 
-                className={isTestnet ? "bg-orange-100 text-orange-800" : "bg-blue-100 text-blue-800"}
-              >
-                {getNetworkName()}
-              </Badge>
-              <ChevronDown className="w-3 h-3" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center space-x-2 bg-white/80 hover:bg-white border-gray-200 shadow-sm transition-all duration-200 hover:shadow-md"
+            >
+              <div className="flex items-center space-x-2">
+                <Badge 
+                  variant={isTestnet ? "destructive" : "default"} 
+                  className={isTestnet 
+                    ? "bg-orange-100 text-orange-800 border-orange-200" 
+                    : "bg-blue-100 text-blue-800 border-blue-200"
+                  }
+                >
+                  <div className="flex items-center space-x-1">
+                    <div className={`w-1.5 h-1.5 rounded-full ${isTestnet ? 'bg-orange-500' : 'bg-blue-500'}`}></div>
+                    <span className="text-xs">{isTestnet ? 'Testnet' : 'Mainnet'}</span>
+                  </div>
+                </Badge>
+                <ChevronDown className="w-3 h-3 text-gray-500" />
+              </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={switchToMainnet} disabled={isMainnet}>
-              <div className="flex items-center space-x-2">
+          <DropdownMenuContent align="end" className="w-48 bg-white/95 backdrop-blur-sm border-gray-200 shadow-lg">
+            <DropdownMenuItem 
+              onClick={switchToMainnet} 
+              disabled={isMainnet}
+              className="cursor-pointer hover:bg-blue-50"
+            >
+              <div className="flex items-center space-x-3 w-full">
                 <div className={`w-2 h-2 rounded-full ${isMainnet ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                <span>World Chain Mainnet</span>
+                <span className="flex-1">World Chain Mainnet</span>
+                {isMainnet && <CheckCircle className="w-4 h-4 text-blue-500" />}
               </div>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={switchToTestnet} disabled={isTestnet}>
-              <div className="flex items-center space-x-2">
+            <DropdownMenuItem 
+              onClick={switchToTestnet} 
+              disabled={isTestnet}
+              className="cursor-pointer hover:bg-orange-50"
+            >
+              <div className="flex items-center space-x-3 w-full">
                 <div className={`w-2 h-2 rounded-full ${isTestnet ? 'bg-orange-500' : 'bg-gray-300'}`} />
-                <span>World Chain Sepolia</span>
+                <span className="flex-1">World Chain Sepolia</span>
+                {isTestnet && <CheckCircle className="w-4 h-4 text-orange-500" />}
               </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         
+        {/* Disconnect Button */}
         <Button
           variant="outline"
           size="sm"
           onClick={disconnectWallet}
-          className="text-gray-600 hover:text-red-600 hover:border-red-300"
+          className="text-gray-600 hover:text-red-600 hover:border-red-300 hover:bg-red-50 bg-white/80 border-gray-200 shadow-sm transition-all duration-200"
         >
-          Disconnect
+          <span className="hidden sm:inline">Disconnect</span>
+          <span className="sm:hidden">×</span>
         </Button>
       </div>
     </div>
