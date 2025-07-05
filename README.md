@@ -122,13 +122,13 @@ SwagMe leverages a multi-chain architecture to provide comprehensive lead collec
 - ✅ **Proof Validation**: Smart contract validation for all submissions
 
 ### LayerZero 🔗
-- ✅ **V2 Contract**: Deployed LayerZero V2 cross-chain messaging
+- ✅ **V2 Contract**: Developed LayerZero V2 cross-chain messaging
 - ✅ **Public Repository**: Open source on GitHub
-- ✅ **Working Demo**: Live transaction hashes available
+- **Working Demo**: Live transaction hashes not yet available
 - ✅ **Submission Form**: Completed feedback form
 
 ### Flare 🔥
-- ✅ **Data Protocols**: Utilizes Flare Data Connector (FDC)
+- ✅ **Data Protocols**: Utilizes Flare Data Connector (FDC) [NB: not 100%, still some issues yet deployed on coston2 0x6179C436b56154124307e92Ed6f38B46a0c16A6c]
 - ✅ **Real-World Problem**: Addresses inefficient event lead collection
 - ✅ **Impactful Use Case**: Streamlines conference and event operations
 
