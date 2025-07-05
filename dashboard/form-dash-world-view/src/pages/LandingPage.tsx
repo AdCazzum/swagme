@@ -17,7 +17,10 @@ import {
   Sparkles,
   Gift,
   Calendar,
-  Smartphone
+  Smartphone,
+  UserCheck,
+  Eye,
+  Bot
 } from 'lucide-react';
 
 interface LandingPageProps {
@@ -101,7 +104,7 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
             </h1>
 
             {/* Subtitle */}
-            <p className="text-2xl lg:text-3xl text-gray-700 max-w-4xl mx-auto mb-12 leading-relaxed font-medium">
+            <p className="text-2xl lg:text-3xl text-gray-700 max-w-4xl mx-auto mb-8 leading-relaxed font-medium">
               Create, share, and collect form responses 
               <span className="font-bold text-blue-700"> securely on the blockchain</span>. 
               <br className="hidden lg:block" />
@@ -110,22 +113,58 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
               <span className="font-bold text-green-700"> real-time analytics</span>.
             </p>
 
+            {/* World Integration Highlight */}
+            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 max-w-4xl mx-auto mb-12 shadow-lg">
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <UserCheck className="w-8 h-8 text-blue-600" />
+                  <Eye className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="h-8 w-px bg-gray-300"></div>
+                <div className="flex items-center space-x-2">
+                  <Bot className="w-6 h-6 text-red-500 line-through opacity-50" />
+                  <span className="text-lg font-bold text-gray-900">No Bots, No Fake Leads</span>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                🌍 Only <span className="text-blue-700">Real, Verified Humans</span>
+              </h3>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                Thanks to <span className="font-bold text-purple-700">World Chain integration</span>, 
+                every lead is automatically verified as a real person. 
+                <span className="font-bold text-green-700"> No bots, no duplicates, no spam</span> - 
+                just qualified prospects ready to engage with your brand.
+              </p>
+            </div>
+
             {/* Use Cases */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mb-16">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-xl transition-shadow duration-300">
                 <Calendar className="w-8 h-8 text-blue-600 mb-4 mx-auto" />
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Conference Booths</h3>
-                <p className="text-gray-600">Collect leads at your booth with QR codes on banners and tables</p>
+                <p className="text-gray-600">Collect verified leads at your booth with QR codes on banners and tables</p>
+                <div className="mt-3 flex items-center justify-center space-x-1 text-xs text-green-700 font-medium">
+                  <UserCheck className="w-4 h-4" />
+                  <span>100% Human Verified</span>
+                </div>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-xl transition-shadow duration-300">
                 <Gift className="w-8 h-8 text-purple-600 mb-4 mx-auto" />
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Swag Distribution</h3>
-                <p className="text-gray-600">Give away merch in exchange for contact information</p>
+                <p className="text-gray-600">Give away merch to real people - no bots wasting your inventory</p>
+                <div className="mt-3 flex items-center justify-center space-x-1 text-xs text-green-700 font-medium">
+                  <Shield className="w-4 h-4" />
+                  <span>Anti-Bot Protection</span>
+                </div>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 hover:shadow-xl transition-shadow duration-300">
                 <Users className="w-8 h-8 text-green-600 mb-4 mx-auto" />
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Networking Events</h3>
-                <p className="text-gray-600">Build your contact list at meetups and community events</p>
+                <p className="text-gray-600">Build quality contact lists with genuine attendees only</p>
+                <div className="mt-3 flex items-center justify-center space-x-1 text-xs text-green-700 font-medium">
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Qualified Prospects</span>
+                </div>
               </div>
             </div>
 
@@ -163,7 +202,7 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
             </Badge>
             <h2 className="text-5xl font-black text-gray-900 mb-6">Perfect for Events</h2>
             <p className="text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
-              From setup to lead collection in 
+              From setup to <span className="text-blue-700 font-bold">verified lead collection</span> in 
               <span className="text-purple-700 font-bold"> under 5 minutes</span>
             </p>
           </div>
@@ -188,11 +227,11 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
               },
               {
                 step: '03',
-                title: 'Collect & Follow Up',
-                description: 'Watch leads come in real-time. Export contact lists and follow up with your new prospects immediately.',
-                icon: BarChart3,
+                title: 'Collect Verified Leads',
+                description: 'Watch real, human-verified leads come in real-time. Export contact lists and follow up with confidence.',
+                icon: UserCheck,
                 color: 'green',
-                features: ['Real-time updates', 'CSV export', 'Instant notifications']
+                features: ['Real-time updates', 'Human verification', 'Quality guaranteed']
               }
             ].map((step, index) => (
               <div key={index} className="text-center group">
@@ -236,7 +275,7 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
             </h2>
             <p className="text-2xl text-gray-600 max-w-3xl mx-auto font-medium">
               Built specifically for 
-              <span className="text-blue-700 font-bold"> lead collection</span> and 
+              <span className="text-blue-700 font-bold"> verified lead collection</span> and 
               <span className="text-purple-700 font-bold"> event management</span>
             </p>
           </div>
@@ -244,47 +283,58 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             {[
               {
+                icon: UserCheck,
+                title: 'Human-Verified Leads',
+                description: 'Every submission is verified through World Chain. No bots, no fake accounts - only real people interested in your event.',
+                color: 'blue',
+                badge: 'World Powered'
+              },
+              {
                 icon: Shield,
                 title: 'Secure & Permanent',
                 description: 'All lead data is stored securely on the blockchain - no more lost contact lists or data breaches.',
-                color: 'blue'
+                color: 'green',
+                badge: 'Enterprise Security'
               },
               {
                 icon: QrCode,
                 title: 'QR Code Magic',
                 description: 'Print QR codes on anything - banners, business cards, screens. Perfect for busy event environments.',
-                color: 'purple'
+                color: 'purple',
+                badge: 'Print Ready'
               },
               {
                 icon: Smartphone,
                 title: 'Mobile-First',
                 description: 'Attendees can fill out forms on their phones in seconds - no app downloads or complicated processes.',
-                color: 'green'
+                color: 'indigo',
+                badge: 'Zero Friction'
               },
               {
                 icon: Zap,
                 title: 'Lightning Fast',
                 description: 'Set up a lead collection form in under 2 minutes. Get your QR code instantly and start collecting.',
-                color: 'yellow'
+                color: 'yellow',
+                badge: '2 Min Setup'
               },
               {
                 icon: BarChart3,
-                title: 'Real-Time Results',
-                description: 'Watch leads come in during your event. Export contact lists immediately for follow-up.',
-                color: 'indigo'
-              },
-              {
-                icon: Globe,
-                title: 'Works Everywhere',
-                description: 'No wifi? No problem. Forms work on any device, anywhere. Your leads are always accessible.',
-                color: 'pink'
+                title: 'Quality Guarantee',
+                description: 'Watch verified leads come in during your event. Export quality contact lists immediately for follow-up.',
+                color: 'pink',
+                badge: '100% Real'
               }
             ].map((feature, index) => (
               <Card key={index} className="group hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 bg-white/90 backdrop-blur-sm border-0 shadow-lg overflow-hidden">
                 <div className={`h-2 bg-gradient-to-r from-${feature.color}-400 to-${feature.color}-600`}></div>
                 <CardHeader className="pb-4">
-                  <div className={`w-16 h-16 bg-gradient-to-br from-${feature.color}-400 to-${feature.color}-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                    <feature.icon className="w-8 h-8 text-white" />
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`w-16 h-16 bg-gradient-to-br from-${feature.color}-400 to-${feature.color}-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                      <feature.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <Badge className={`bg-${feature.color}-100 text-${feature.color}-800 border-${feature.color}-200 text-xs font-semibold`}>
+                      {feature.badge}
+                    </Badge>
                   </div>
                   <CardTitle className="text-2xl font-bold text-gray-900 mb-3">
                     {feature.title}
@@ -325,7 +375,7 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
           </h2>
           
           <p className="text-2xl text-blue-100 mb-12 max-w-3xl mx-auto font-medium leading-relaxed">
-            Join event organizers who've collected thousands of leads with SwagForm. 
+            Join event organizers who've collected thousands of <span className="text-white font-bold">verified leads</span> with SwagForm. 
             <span className="text-white font-bold">Setup takes 2 minutes</span> - your next event starts now.
           </p>
           
@@ -342,8 +392,8 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
             
             <div className="text-center">
               <div className="flex items-center justify-center space-x-2 text-blue-100 mb-2">
-                <CheckCircle className="w-6 h-6 text-green-300" />
-                <span className="text-lg font-medium">Free to start • No credit card needed</span>
+                <UserCheck className="w-6 h-6 text-green-300" />
+                <span className="text-lg font-medium">100% Human Verified Leads</span>
               </div>
               <div className="flex items-center justify-center space-x-2 text-blue-100">
                 <CheckCircle className="w-6 h-6 text-green-300" />
@@ -365,8 +415,8 @@ const LandingPage = ({ onNavigateToDashboard }: LandingPageProps) => {
               <span className="text-2xl font-bold text-white">SwagForm</span>
             </div>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              The easiest way to collect leads at events. 
-              <span className="text-white font-semibold">Secure, fast, and blockchain-powered.</span>
+              The easiest way to collect <span className="text-white font-semibold">verified leads</span> at events. 
+              <span className="text-white font-semibold">Secure, fast, and human-powered.</span>
             </p>
             
             <div className="flex items-center justify-center space-x-8 text-gray-300 text-lg mb-8">
