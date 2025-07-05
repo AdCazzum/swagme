@@ -178,9 +178,10 @@ export const submitFormToContract = async (
       transaction: [
         {
           address: CONTRACT_ADDRESS,
-          abi: TestContractABI,
+          abi: TestContractABI.filter((item) => item.name === "submitForm"),
           functionName: "submitForm",
           args: [BigInt(formId), username.trim(), email.trim(), cleanAnswers],
+          value: "0x0",
         },
       ],
     });
