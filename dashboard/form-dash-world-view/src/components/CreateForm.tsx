@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Save, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface Question {
   text: string;
   required: boolean;
+  requiresProof: boolean;
 }
 
 interface CreateFormProps {
@@ -28,11 +29,11 @@ const CreateForm = ({ onBack, onFormCreated }: CreateFormProps) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [questions, setQuestions] = useState<Question[]>([
-    { text: '', required: false }
+    { text: '', required: false, requiresProof: false }
   ]);
 
   const addQuestion = () => {
-    setQuestions([...questions, { text: '', required: false }]);
+    setQuestions([...questions, { text: '', required: false, requiresProof: false }]);
   };
 
   const removeQuestion = (index: number) => {
@@ -174,6 +175,16 @@ const CreateForm = ({ onBack, onFormCreated }: CreateFormProps) => {
                       />
                       <Label className="text-xs text-gray-600">Required</Label>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={question.requiresProof}
+                        onCheckedChange={(checked) => updateQuestion(index, 'requiresProof', checked)}
+                      />
+                      <Label className="text-xs text-gray-600 flex items-center space-x-1">
+                        <Shield className="w-3 h-3" />
+                        <span>Twitter Proof</span>
+                      </Label>
+                    </div>
                     {questions.length > 1 && (
                       <Button
                         type="button"
@@ -196,11 +207,19 @@ const CreateForm = ({ onBack, onFormCreated }: CreateFormProps) => {
                   className="w-full"
                 />
                 
-                {question.required && (
-                  <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
-                    Required
-                  </Badge>
-                )}
+                <div className="flex items-center space-x-2">
+                  {question.required && (
+                    <Badge variant="outline" className="text-xs bg-red-50 text-red-700 border-red-200">
+                      Required
+                    </Badge>
+                  )}
+                  {question.requiresProof && (
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 flex items-center space-x-1">
+                      <Shield className="w-3 h-3" />
+                      <span>Twitter Proof Required</span>
+                    </Badge>
+                  )}
+                </div>
               </div>
             ))}
             

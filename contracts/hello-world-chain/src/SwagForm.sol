@@ -6,6 +6,7 @@ contract SwagForm {
     struct Question {
         string questionText;
         bool isRequired;
+        bool requiresProof; // Nuovo campo per indicare se la domanda richiede una proof Web2Json
     }
     
     // Struttura per un form
@@ -35,6 +36,7 @@ contract SwagForm {
     mapping(uint256 => mapping(string => bool)) public emailExists; // formId => email => exists
     mapping(uint256 => address[]) public formSubmitters; // formId => array of submitters
     mapping(address => uint256[]) public userForms; // user => array of form IDs created by user
+    mapping(uint256 => mapping(address => mapping(uint256 => bool))) public proofVerified; // formId => user => questionIndex => verified
     
     // Contatori
     uint256 public totalForms;
@@ -76,11 +78,13 @@ contract SwagForm {
         string calldata _title,
         string calldata _description,
         string[] calldata _questions,
-        bool[] calldata _isRequired
+        bool[] calldata _isRequired,
+        bool[] calldata _requiresProof
     ) external {
         require(bytes(_title).length > 0, "Title is required");
         require(_questions.length > 0, "At least one question is required");
         require(_questions.length == _isRequired.length, "Questions and required flags must have same length");
+        require(_questions.length == _requiresProof.length, "Questions and proof flags must have same length");
         
         uint256 formId = totalForms;
         
@@ -96,7 +100,8 @@ contract SwagForm {
         for (uint256 i = 0; i < _questions.length; i++) {
             forms[formId].questions.push(Question({
                 questionText: _questions[i],
-                isRequired: _isRequired[i]
+                isRequired: _isRequired[i],
+                requiresProof: _requiresProof[i]
             }));
         }
         
@@ -148,13 +153,47 @@ contract SwagForm {
         emit FormSubmitted(_formId, msg.sender, _email, _username, block.timestamp);
     }
     
+    // Funzioni per gestire le proof Web2Json
+    function setProofVerified(uint256 _formId, address _user, uint256 _questionIndex, bool _verified) external formExists(_formId) {
+        // Nota: questa funzione dovrebbe essere chiamata solo dal contratto Coston2 autorizzato
+        // Per ora è pubblica per testing, ma andrebbe aggiunta la logica di autorizzazione
+        proofVerified[_formId][_user][_questionIndex] = _verified;
+    }
+    
+    function isProofVerified(uint256 _formId, address _user, uint256 _questionIndex) external view formExists(_formId) returns (bool) {
+        return proofVerified[_formId][_user][_questionIndex];
+    }
+    
+    function areAllProofsVerified(uint256 _formId, address _user) external view formExists(_formId) returns (bool) {
+        Form storage form = forms[_formId];
+        
+        for (uint256 i = 0; i < form.questions.length; i++) {
+            if (form.questions[i].requiresProof && !proofVerified[_formId][_user][i]) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    function getProofRequirements(uint256 _formId) external view formExists(_formId) returns (bool[] memory) {
+        Form storage form = forms[_formId];
+        bool[] memory requirements = new bool[](form.questions.length);
+        
+        for (uint256 i = 0; i < form.questions.length; i++) {
+            requirements[i] = form.questions[i].requiresProof;
+        }
+        
+        return requirements;
+    }
+    
     // Funzioni di visualizzazione
     function getForm(uint256 _formId) external view formExists(_formId) returns (
         string memory title,
         string memory description,
         uint256 questionsCount,
         bool isActive,
-        uint256 totalSubmissions,
+        uint256 submissionsCount,
         uint256 createdAt,
         address creator
     ) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { useWallet } from './useWallet';
 
-const CONTRACT_ADDRESS = '0xDD0a13b48dd11985Ca8d7562B9564232AB8719B8';
+const CONTRACT_ADDRESS = '0xC22820E58D27094941Ce5B85BeE65a4351c9B26c';
 
 const CONTRACT_ABI = [
   {
@@ -99,649 +99,377 @@ const CONTRACT_ABI = [
     "type": "event"
   },
   {
+    "type": "function",
+    "name": "areAllProofsVerified",
     "inputs": [
-      {
-        "internalType": "string",
-        "name": "_title",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_description",
-        "type": "string"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_questions",
-        "type": "string[]"
-      },
-      {
-        "internalType": "bool[]",
-        "name": "_isRequired",
-        "type": "bool[]"
-      }
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_user",   "type": "address", "internalType": "address" }
     ],
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "createForm",
+    "inputs": [
+      { "name": "_title",         "type": "string",   "internalType": "string"   },
+      { "name": "_description",   "type": "string",   "internalType": "string"   },
+      { "name": "_questions",     "type": "string[]", "internalType": "string[]" },
+      { "name": "_isRequired",    "type": "bool[]",   "internalType": "bool[]"   },
+      { "name": "_requiresProof", "type": "bool[]",   "internalType": "bool[]"   }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
+    "type": "function",
     "name": "emailExists",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+    "inputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "string",  "internalType": "string"  }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
+    "type": "function",
     "name": "formSubmitters",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+    "inputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "uint256", "internalType": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
+    "type": "function",
     "name": "forms",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "title",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      },
-      {
-        "internalType": "bool",
-        "name": "isActive",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalSubmissions",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "createdAt",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "creator",
-        "type": "address"
-      }
+    "inputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "title",            "type": "string",  "internalType": "string"  },
+      { "name": "description",      "type": "string",  "internalType": "string"  },
+      { "name": "isActive",         "type": "bool",    "internalType": "bool"    },
+      { "name": "totalSubmissions", "type": "uint256", "internalType": "uint256" },
+      { "name": "createdAt",        "type": "uint256", "internalType": "uint256" },
+      { "name": "creator",          "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      }
-    ],
+    "type": "function",
     "name": "getAllFormSubmissions",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" }
+    ],
     "outputs": [
       {
-        "components": [
-          {
-            "internalType": "uint256",
-            "name": "formId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "username",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "email",
-            "type": "string"
-          },
-          {
-            "internalType": "string[]",
-            "name": "answers",
-            "type": "string[]"
-          },
-          {
-            "internalType": "uint256",
-            "name": "timestamp",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "submitter",
-            "type": "address"
-          }
-        ],
+        "name": "",
+        "type": "tuple[]",
         "internalType": "struct SwagForm.Submission[]",
-        "name": "",
-        "type": "tuple[]"
+        "components": [
+          { "name": "formId",    "type": "uint256",   "internalType": "uint256"   },
+          { "name": "username",  "type": "string",    "internalType": "string"    },
+          { "name": "email",     "type": "string",    "internalType": "string"    },
+          { "name": "answers",   "type": "string[]",  "internalType": "string[]"  },
+          { "name": "timestamp", "type": "uint256",   "internalType": "uint256"   },
+          { "name": "submitter", "type": "address",   "internalType": "address"   }
+        ]
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view"
   },
   {
-    "inputs": [],
+    "type": "function",
     "name": "getAllForms",
+    "inputs": [],
     "outputs": [
-      {
-        "internalType": "string[]",
-        "name": "titles",
-        "type": "string[]"
-      },
-      {
-        "internalType": "bool[]",
-        "name": "activeStatus",
-        "type": "bool[]"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "submissionCounts",
-        "type": "uint256[]"
-      },
-      {
-        "internalType": "address[]",
-        "name": "creators",
-        "type": "address[]"
-      }
+      { "name": "titles",           "type": "string[]",  "internalType": "string[]"  },
+      { "name": "activeStatus",     "type": "bool[]",    "internalType": "bool[]"    },
+      { "name": "submissionCounts", "type": "uint256[]", "internalType": "uint256[]" },
+      { "name": "creators",         "type": "address[]", "internalType": "address[]" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      }
-    ],
+    "type": "function",
     "name": "getForm",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "title",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "questionsCount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "isActive",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalSubmissions",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "createdAt",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "creator",
-        "type": "address"
-      }
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "title",            "type": "string",  "internalType": "string"  },
+      { "name": "description",      "type": "string",  "internalType": "string"  },
+      { "name": "questionsCount",   "type": "uint256", "internalType": "uint256" },
+      { "name": "isActive",         "type": "bool",    "internalType": "bool"    },
+      { "name": "submissionsCount", "type": "uint256", "internalType": "uint256" },
+      { "name": "createdAt",        "type": "uint256", "internalType": "uint256" },
+      { "name": "creator",          "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      }
-    ],
+    "type": "function",
     "name": "getFormQuestions",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" }
+    ],
     "outputs": [
       {
-        "components": [
-          {
-            "internalType": "string",
-            "name": "questionText",
-            "type": "string"
-          },
-          {
-            "internalType": "bool",
-            "name": "isRequired",
-            "type": "bool"
-          }
-        ],
+        "name": "",
+        "type": "tuple[]",
         "internalType": "struct SwagForm.Question[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      }
-    ],
-    "name": "getFormSubmitters",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getStats",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "totalFormsCount",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "totalSubmissionsCount",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
-    "name": "getSubmission",
-    "outputs": [
-      {
         "components": [
-          {
-            "internalType": "uint256",
-            "name": "formId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "string",
-            "name": "username",
-            "type": "string"
-          },
-          {
-            "internalType": "string",
-            "name": "email",
-            "type": "string"
-          },
-          {
-            "internalType": "string[]",
-            "name": "answers",
-            "type": "string[]"
-          },
-          {
-            "internalType": "uint256",
-            "name": "timestamp",
-            "type": "uint256"
-          },
-          {
-            "internalType": "address",
-            "name": "submitter",
-            "type": "address"
-          }
-        ],
+          { "name": "questionText", "type": "string", "internalType": "string" },
+          { "name": "isRequired",   "type": "bool",   "internalType": "bool"   },
+          { "name": "requiresProof","type": "bool",   "internalType": "bool"   }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFormSubmitters",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "address[]", "internalType": "address[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getProofRequirements",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "bool[]", "internalType": "bool[]" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getStats",
+    "inputs": [],
+    "outputs": [
+      { "name": "totalFormsCount",      "type": "uint256", "internalType": "uint256" },
+      { "name": "totalSubmissionsCount","type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSubmission",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_user",   "type": "address", "internalType": "address" }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
         "internalType": "struct SwagForm.Submission",
-        "name": "",
-        "type": "tuple"
+        "components": [
+          { "name": "formId",    "type": "uint256",  "internalType": "uint256" },
+          { "name": "username",  "type": "string",   "internalType": "string"  },
+          { "name": "email",     "type": "string",   "internalType": "string"  },
+          { "name": "answers",   "type": "string[]", "internalType": "string[]"},
+          { "name": "timestamp", "type": "uint256",  "internalType": "uint256" },
+          { "name": "submitter", "type": "address",  "internalType": "address" }
+        ]
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
+    "type": "function",
     "name": "getUserForms",
-    "outputs": [
-      {
-        "internalType": "uint256[]",
-        "name": "",
-        "type": "uint256[]"
-      }
+    "inputs": [
+      { "name": "_user", "type": "address", "internalType": "address" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "", "type": "uint256[]", "internalType": "uint256[]" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
+    "type": "function",
     "name": "getUserStats",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "formsCreated",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "formsSubmitted",
-        "type": "uint256"
-      }
+    "inputs": [
+      { "name": "_user", "type": "address", "internalType": "address" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "formsCreated",   "type": "uint256", "internalType": "uint256" },
+      { "name": "formsSubmitted", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
+    "type": "function",
     "name": "hasSubmitted",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_user",   "type": "address", "internalType": "address" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "_user",
-        "type": "address"
-      }
-    ],
+    "type": "function",
     "name": "isFormCreator",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_user",   "type": "address", "internalType": "address" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
   },
   {
+    "type": "function",
+    "name": "isProofVerified",
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "_active",
-        "type": "bool"
-      }
+      { "name": "_formId",       "type": "uint256", "internalType": "uint256" },
+      { "name": "_user",         "type": "address", "internalType": "address" },
+      { "name": "_questionIndex","type": "uint256", "internalType": "uint256" }
     ],
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "proofVerified",
+    "inputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "address", "internalType": "address" },
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [
+      { "name": "", "type": "bool", "internalType": "bool" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "setFormActive",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_active", "type": "bool",    "internalType": "bool"    }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
+    "type": "function",
+    "name": "setProofVerified",
     "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
+      { "name": "_formId",       "type": "uint256", "internalType": "uint256" },
+      { "name": "_user",         "type": "address", "internalType": "address" },
+      { "name": "_questionIndex","type": "uint256", "internalType": "uint256" },
+      { "name": "_verified",     "type": "bool",    "internalType": "bool"    }
     ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "submissions",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "username",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "email",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
-      },
-      {
-        "internalType": "address",
-        "name": "submitter",
-        "type": "address"
-      }
+    "inputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" },
+      { "name": "", "type": "address", "internalType": "address" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "formId",    "type": "uint256", "internalType": "uint256" },
+      { "name": "username",  "type": "string",  "internalType": "string"  },
+      { "name": "email",     "type": "string",  "internalType": "string"  },
+      { "name": "timestamp", "type": "uint256", "internalType": "uint256" },
+      { "name": "submitter", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_username",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "_email",
-        "type": "string"
-      },
-      {
-        "internalType": "string[]",
-        "name": "_answers",
-        "type": "string[]"
-      }
-    ],
+    "type": "function",
     "name": "submitForm",
+    "inputs": [
+      { "name": "_formId",  "type": "uint256",   "internalType": "uint256"   },
+      { "name": "_username","type": "string",    "internalType": "string"    },
+      { "name": "_email",   "type": "string",    "internalType": "string"    },
+      { "name": "_answers", "type": "string[]",  "internalType": "string[]"  }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [],
+    "type": "function",
     "name": "totalForms",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [],
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "totalSubmissions",
+    "inputs": [],
     "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+      { "name": "", "type": "uint256", "internalType": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "stateMutability": "view"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_description",
-        "type": "string"
-      }
-    ],
+    "type": "function",
     "name": "updateFormDescription",
+    "inputs": [
+      { "name": "_formId",     "type": "uint256", "internalType": "uint256" },
+      { "name": "_description","type": "string",  "internalType": "string"  }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_formId",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "_title",
-        "type": "string"
-      }
-    ],
+    "type": "function",
     "name": "updateFormTitle",
+    "inputs": [
+      { "name": "_formId", "type": "uint256", "internalType": "uint256" },
+      { "name": "_title",  "type": "string",  "internalType": "string"  }
+    ],
     "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
+    "type": "function",
     "name": "userForms",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+    "inputs": [
+      { "name": "", "type": "address", "internalType": "address" },
+      { "name": "", "type": "uint256", "internalType": "uint256" }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    "outputs": [
+      { "name": "", "type": "uint256", "internalType": "uint256" }
+    ],
+    "stateMutability": "view"
   }
 ];
 
 export interface Question {
   questionText: string;
   isRequired: boolean;
+  requiresProof: boolean;
 }
 
 export interface FormData {
@@ -799,7 +527,7 @@ export const useSwagForm = () => {
   const createForm = async (
     title: string,
     description: string,
-    questions: { text: string; required: boolean }[]
+    questions: { text: string; required: boolean; requiresProof: boolean }[]
   ) => {
     if (!contract) {
       throw new Error('Contract not available');
@@ -809,12 +537,13 @@ export const useSwagForm = () => {
     try {
       const questionTexts = questions.map(q => q.text);
       const requiredFlags = questions.map(q => q.required);
+      const proofFlags = questions.map(q => q.requiresProof);
 
-      console.log('Creating form with:', { title, description, questionTexts, requiredFlags });
+      console.log('Creating form with:', { title, description, questionTexts, requiredFlags, proofFlags });
       console.log('Contract address being used:', CONTRACT_ADDRESS);
       console.log('Account creating form:', account);
       
-      const tx = await contract.createForm(title, description, questionTexts, requiredFlags);
+      const tx = await contract.createForm(title, description, questionTexts, requiredFlags, proofFlags);
       console.log('Form creation transaction:', tx.hash);
       
       const receipt = await tx.wait();
@@ -1007,6 +736,68 @@ export const useSwagForm = () => {
     }
   };
 
+  // Funzioni per gestire le proof Web2Json
+  const setProofVerified = async (
+    formId: number,
+    user: string,
+    questionIndex: number,
+    verified: boolean
+  ) => {
+    if (!contract) {
+      throw new Error('Contract not available');
+    }
+
+    try {
+      const tx = await contract.setProofVerified(formId, user, questionIndex, verified);
+      await tx.wait();
+      console.log('Proof verification status updated');
+      return tx.hash;
+    } catch (error) {
+      console.error('Error setting proof verified:', error);
+      throw error;
+    }
+  };
+
+  const isProofVerified = async (
+    formId: number,
+    user: string,
+    questionIndex: number
+  ): Promise<boolean> => {
+    if (!contract) return false;
+
+    try {
+      return await contract.isProofVerified(formId, user, questionIndex);
+    } catch (error) {
+      console.error('Error checking proof verification:', error);
+      return false;
+    }
+  };
+
+  const areAllProofsVerified = async (
+    formId: number,
+    user: string
+  ): Promise<boolean> => {
+    if (!contract) return false;
+
+    try {
+      return await contract.areAllProofsVerified(formId, user);
+    } catch (error) {
+      console.error('Error checking all proofs verified:', error);
+      return false;
+    }
+  };
+
+  const getProofRequirements = async (formId: number): Promise<boolean[]> => {
+    if (!contract) return [];
+
+    try {
+      return await contract.getProofRequirements(formId);
+    } catch (error) {
+      console.error('Error getting proof requirements:', error);
+      return [];
+    }
+  };
+
   return {
     contract,
     loading,
@@ -1017,5 +808,10 @@ export const useSwagForm = () => {
     getStats,
     isFormCreator,
     isConnected,
+    // Funzioni proof
+    setProofVerified,
+    isProofVerified,
+    areAllProofsVerified,
+    getProofRequirements,
   };
 };
