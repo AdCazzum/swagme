@@ -6,7 +6,7 @@
   command = "npm run build"
   
   # Directory di output per Vite (default: dist)
-  publish = "dist"
+  publish = ".next"
 
 # Configurazione per SPA (Single Page Application)
 [[redirects]]
