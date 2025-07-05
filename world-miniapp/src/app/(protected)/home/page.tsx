@@ -1,11 +1,8 @@
 import { auth } from "@/auth";
 import { Page } from "@/components/PageLayout";
 import { Scan } from "@/components/Scan";
-// import { Pay } from "@/components/Pay";
-// import { Transaction } from "@/components/Transaction";
 import { UserInfo } from "@/components/UserInfo";
 import { Verify } from "@/components/Verify";
-// import { ViewPermissions } from "@/components/ViewPermissions";
 import { Marble, TopBar } from "@worldcoin/mini-apps-ui-kit-react";
 
 export default async function Home() {
@@ -28,9 +25,6 @@ export default async function Home() {
         <UserInfo />
         <Verify />
         <Scan />
-        {/* <Pay />
-        <Transaction />
-        <ViewPermissions /> */}
       </Page.Main>
     </>
   );

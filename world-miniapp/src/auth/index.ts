@@ -1,13 +1,13 @@
-import { hashNonce } from '@/auth/wallet/client-helpers';
+import { hashNonce } from "@/auth/wallet/client-helpers";
 import {
   MiniAppWalletAuthSuccessPayload,
   MiniKit,
   verifySiweMessage,
-} from '@worldcoin/minikit-js';
-import NextAuth, { type DefaultSession } from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
+} from "@worldcoin/minikit-js";
+import NextAuth, { type DefaultSession } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 
-declare module 'next-auth' {
+declare module "next-auth" {
   interface User {
     walletAddress: string;
     username: string;
@@ -19,23 +19,20 @@ declare module 'next-auth' {
       walletAddress: string;
       username: string;
       profilePictureUrl: string;
-    } & DefaultSession['user'];
+    } & DefaultSession["user"];
   }
 }
 
-// Auth configuration for Wallet Auth based sessions
-// For more information on each option (and a full list of options) go to
-// https://authjs.dev/getting-started/authentication/credentials
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
-  session: { strategy: 'jwt' },
+  session: { strategy: "jwt" },
   providers: [
     Credentials({
-      name: 'World App Wallet',
+      name: "World App Wallet",
       credentials: {
-        nonce: { label: 'Nonce', type: 'text' },
-        signedNonce: { label: 'Signed Nonce', type: 'text' },
-        finalPayloadJson: { label: 'Final Payload', type: 'text' },
+        nonce: { label: "Nonce", type: "text" },
+        signedNonce: { label: "Signed Nonce", type: "text" },
+        finalPayloadJson: { label: "Final Payload", type: "text" },
       },
       // @ts-expect-error TODO
       authorize: async ({
@@ -50,7 +47,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const expectedSignedNonce = hashNonce({ nonce });
 
         if (signedNonce !== expectedSignedNonce) {
-          console.log('Invalid signed nonce');
+          console.log("Invalid signed nonce");
           return null;
         }
 
@@ -59,16 +56,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const result = await verifySiweMessage(finalPayload, nonce);
 
         if (!result.isValid || !result.siweMessageData.address) {
-          console.log('Invalid final payload');
+          console.log("Invalid final payload");
           return null;
         }
-        // Optionally, fetch the user info from your own database
-        const userInfo = await MiniKit.getUserInfo(finalPayload.address);
 
-        return {
-          id: finalPayload.address,
-          ...userInfo,
-        };
+        const userInfo = await MiniKit.getUserInfo(finalPayload.address);
+        return { id: finalPayload.address, ...userInfo };
       },
     }),
   ],
@@ -80,7 +73,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.username = user.username;
         token.profilePictureUrl = user.profilePictureUrl;
       }
-
       return token;
     },
     session: async ({ session, token }) => {
@@ -90,7 +82,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.username = token.username as string;
         session.user.profilePictureUrl = token.profilePictureUrl as string;
       }
-
       return session;
     },
   },
