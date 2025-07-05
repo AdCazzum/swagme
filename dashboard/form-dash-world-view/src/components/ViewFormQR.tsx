@@ -187,7 +187,7 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
               <QRCode
                 size={window.innerWidth < 768 ? 280 : 400}
                 style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                value={formUrl}
+                value={formId.toString()}
                 viewBox={`0 0 400 400`}
                 title={`QR Code for ${form.title}`}
               />
@@ -354,7 +354,7 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
                 <QRCode
                   size={200}
                   style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                  value={formUrl}
+                  value={formId.toString()}
                   viewBox={`0 0 200 200`}
                   title={`QR Code for ${form.title}`}
                 />
