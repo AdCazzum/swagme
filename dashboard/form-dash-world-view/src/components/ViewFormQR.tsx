@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Share2, Copy, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Share2, Copy, ExternalLink, Maximize, Minimize, Monitor } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ViewFormQRProps {
@@ -18,6 +18,8 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
   const { toast } = useToast();
   const [form, setForm] = useState<FormData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [kioskMode, setKioskMode] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Generate the form URL for sharing
   const formUrl = `${window.location.origin}/form/${formId}`;
@@ -27,6 +29,25 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
       loadFormData();
     }
   }, [contract, formId]);
+
+  // Check for kiosk mode parameter in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('kiosk') === 'true') {
+      setKioskMode(true);
+      enterFullscreen();
+    }
+  }, []);
+
+  // Handle fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   const loadFormData = async () => {
     if (!contract) return;
@@ -64,12 +85,53 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
     }
   };
 
+  const enterFullscreen = async () => {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (error) {
+      console.log('Fullscreen not supported:', error);
+    }
+  };
+
+  const exitFullscreen = async () => {
+    try {
+      await document.exitFullscreen();
+    } catch (error) {
+      console.log('Exit fullscreen error:', error);
+    }
+  };
+
+  const toggleKioskMode = () => {
+    const newKioskMode = !kioskMode;
+    setKioskMode(newKioskMode);
+    
+    if (newKioskMode) {
+      enterFullscreen();
+      // Update URL to include kiosk parameter
+      const url = new URL(window.location.href);
+      url.searchParams.set('kiosk', 'true');
+      window.history.pushState(null, '', url.toString());
+    } else {
+      exitFullscreen();
+      // Remove kiosk parameter from URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('kiosk');
+      window.history.pushState(null, '', url.toString());
+    }
+  };
+
+  const copyKioskUrl = () => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('kiosk', 'true');
+    copyToClipboard(url.toString());
+  };
+
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       toast({
         title: "Copied!",
-        description: "Form URL copied to clipboard",
+        description: "URL copied to clipboard",
       });
     } catch (err) {
       console.error('Failed to copy: ', err);
@@ -88,6 +150,87 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString();
   };
+
+  // Kiosk Mode Render
+  if (kioskMode && form) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 flex flex-col items-center justify-center p-8 relative">
+        {/* Exit Controls - Hidden by default, show on hover */}
+        <div className="absolute top-4 left-4 opacity-0 hover:opacity-100 transition-opacity duration-300 z-10">
+          <Button
+            variant="outline"
+            onClick={toggleKioskMode}
+            className="bg-white/90 backdrop-blur-sm"
+          >
+            <Minimize className="w-4 h-4 mr-2" />
+            Exit Kiosk
+          </Button>
+        </div>
+
+        {/* Main Content */}
+        <div className="text-center space-y-8 max-w-4xl mx-auto">
+          {/* Title Section */}
+          <div className="space-y-4">
+            <h1 className="text-4xl md:text-6xl font-black text-gray-900 leading-tight">
+              {form.title}
+            </h1>
+            {form.description && (
+              <p className="text-xl md:text-2xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                {form.description}
+              </p>
+            )}
+          </div>
+
+          {/* QR Code Section */}
+          <div className="flex flex-col items-center space-y-6">
+            <div className="bg-white p-8 md:p-12 rounded-3xl shadow-2xl border-4 border-blue-200">
+              <QRCode
+                size={window.innerWidth < 768 ? 280 : 400}
+                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                value={formUrl}
+                viewBox={`0 0 400 400`}
+                title={`QR Code for ${form.title}`}
+              />
+            </div>
+            
+            {/* Instructions */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 md:p-8 border-2 border-blue-200">
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+                📱 Scan to Join
+              </h2>
+              <div className="text-lg md:text-xl text-gray-700 space-y-2">
+                <p>1. Open your phone camera</p>
+                <p>2. Point at the QR code above</p>
+                <p>3. Tap the notification to open</p>
+                <p className="text-blue-700 font-semibold">4. Fill out the form!</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Info */}
+          <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-8 text-gray-600">
+            <div className="flex items-center space-x-2">
+              <Badge className="bg-green-100 text-green-800 border-green-200 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
+                Live on World Chain
+              </Badge>
+            </div>
+            <div className="text-sm">
+              {form.totalSubmissions} responses collected
+            </div>
+            <div className="text-sm">
+              Form ID: {form.id}
+            </div>
+          </div>
+        </div>
+
+        {/* Watermark */}
+        <div className="absolute bottom-4 right-4 text-gray-400 text-sm opacity-50">
+          Powered by SwagForm
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -223,6 +366,38 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
 
             <Separator />
 
+            {/* Kiosk Mode Button */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border-2 border-purple-200">
+              <h3 className="font-semibold mb-2 flex items-center space-x-2">
+                <Monitor className="w-4 h-4" />
+                <span>Stand/Kiosk Display</span>
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                Perfect for events and booths - shows only the QR code in fullscreen
+              </p>
+              <div className="space-y-2">
+                <Button
+                  className="w-full"
+                  onClick={toggleKioskMode}
+                  variant="default"
+                >
+                  <Maximize className="w-4 h-4 mr-2" />
+                  Enter Kiosk Mode
+                </Button>
+                <Button
+                  className="w-full"
+                  onClick={copyKioskUrl}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Kiosk URL
+                </Button>
+              </div>
+            </div>
+
+            <Separator />
+
             <div>
               <h3 className="font-semibold mb-2">Share URL</h3>
               <div className="flex items-center space-x-2">
@@ -266,6 +441,7 @@ const ViewFormQR = ({ formId, onBack }: ViewFormQRProps) => {
                 <li>• Users can scan/click to access the form</li>
                 <li>• They'll need a Web3 wallet to submit responses</li>
                 <li>• All submissions are stored on the blockchain</li>
+                <li>• Use Kiosk Mode for events and stands</li>
               </ul>
             </div>
           </CardContent>
