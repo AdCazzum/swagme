@@ -1,5 +1,11 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 interface VerificationContextType {
   isVerified: boolean;
@@ -15,7 +21,9 @@ const VerificationContext = createContext<VerificationContextType | undefined>(
 export const useVerification = (): VerificationContextType => {
   const context = useContext(VerificationContext);
   if (!context) {
-    throw new Error("useVerification must be used within a VerificationProvider");
+    throw new Error(
+      "useVerification must be used within a VerificationProvider"
+    );
   }
   return context;
 };
@@ -28,13 +36,15 @@ export const VerificationProvider: React.FC<VerificationProviderProps> = ({
   children,
 }) => {
   const [isVerified, setIsVerifiedState] = useState(false);
-  const [verificationLevel, setVerificationLevel] = useState<string | null>(null);
+  const [verificationLevel, setVerificationLevel] = useState<string | null>(
+    null
+  );
 
   // Load verification status from localStorage on mount
   useEffect(() => {
     const savedVerification = localStorage.getItem("worldapp-verification");
     const savedLevel = localStorage.getItem("worldapp-verification-level");
-    
+
     if (savedVerification === "true") {
       setIsVerifiedState(true);
     }

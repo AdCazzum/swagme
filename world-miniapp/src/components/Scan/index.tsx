@@ -162,11 +162,13 @@ export const Scan = () => {
     <div className="flex flex-col gap-4 rounded-xl w-full border-2 border-gray-200 p-4">
       <div className="flex flex-row items-center justify-between">
         <p className="text-lg font-semibold">QR Scanner</p>
-        <div className={`text-xs px-2 py-1 rounded-full ${
-          isVerified 
-            ? "text-green-600 bg-green-100" 
-            : "text-gray-500 bg-gray-100"
-        }`}>
+        <div
+          className={`text-xs px-2 py-1 rounded-full ${
+            isVerified
+              ? "text-green-600 bg-green-100"
+              : "text-gray-500 bg-gray-100"
+          }`}
+        >
           {isVerified ? "Step 2: Survey Access" : "Step 2: Locked"}
         </div>
       </div>
@@ -193,7 +195,8 @@ export const Scan = () => {
               </h3>
               <div className="mt-2 text-sm text-amber-700">
                 <p>
-                  Please complete the identity verification above before you can scan QR codes to access surveys.
+                  Please complete the identity verification above before you can
+                  scan QR codes to access surveys.
                 </p>
               </div>
             </div>
@@ -247,12 +250,11 @@ export const Scan = () => {
           variant={isVerified ? "tertiary" : "secondary"}
           className="w-full"
         >
-          {!isVerified 
-            ? "Complete Verification First" 
-            : scanning 
-            ? "Scanning..." 
-            : "Scan QR Code"
-          }
+          {!isVerified
+            ? "Complete Verification First"
+            : scanning
+            ? "Scanning..."
+            : "Scan QR Code"}
         </Button>
 
         {scanning && (
