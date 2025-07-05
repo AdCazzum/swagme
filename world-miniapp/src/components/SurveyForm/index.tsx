@@ -4,13 +4,12 @@ import { Button, LiveFeedback } from "@worldcoin/mini-apps-ui-kit-react";
 import {
   getFormQuestions,
   getFormInfo,
-  submitFormToContract,
-  testContractConnection,
   FormQuestion,
   FormInfo,
   ContractError,
   ValidationError,
 } from "../../services/contract";
+import { useSubmitForm } from "../../hooks/useSubmitForm";
 
 interface SurveyFormProps {
   formId: string;
@@ -24,11 +23,19 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitState, setSubmitState] = useState<
-    "pending" | "success" | "failed" | undefined
-  >(undefined);
+
+  // Usa il nuovo hook per gestire la sottomissione e la conferma
+  const {
+    submitForm,
+    transactionId,
+    isLoading: isSubmitting,
+    isConfirming,
+    isConfirmed,
+    hasError,
+    errorMessage,
+    reset: resetSubmit,
+  } = useSubmitForm();
 
   useEffect(() => {
     const loadFormData = async () => {
@@ -111,37 +118,24 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
     }
 
     try {
-      setSubmitting(true);
-      setSubmitState("pending");
       setError(null);
+      resetSubmit();
 
-      // Debug: Test contract connection first
-      console.log("Testing contract connection before submission...");
-      await testContractConnection();
-
-      // Submit form to smart contract
-      const transactionId = await submitFormToContract({
+      const txId = await submitForm({
         formId,
         username,
         email,
         answers: answers.filter((answer) => answer.trim() !== ""),
       });
 
-      console.log(
-        "Form submitted successfully with transaction ID:",
-        transactionId
-      );
-      setSubmitState("success");
+      console.log("Transaction submitted:", txId);
 
-      // Go back after success
-      setTimeout(() => {
-        onBack();
-      }, 2000);
+      // Vai indietro solo dopo che la transazione è confermata
+      // (gestito dall'effetto che ascolta isConfirmed)
     } catch (err) {
       console.error("Error submitting form:", err);
 
       let errorMessage = "Error submitting answers. Please try again.";
-
       if (err instanceof ValidationError) {
         errorMessage = err.message;
       } else if (err instanceof ContractError) {
@@ -149,11 +143,20 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
       }
 
       setError(errorMessage);
-      setSubmitState("failed");
-    } finally {
-      setSubmitting(false);
     }
   };
+
+  // Effetto per gestire il completamento della transazione
+  useEffect(() => {
+    if (isConfirmed) {
+      // Vai indietro dopo 3 secondi quando la transazione è confermata
+      const timer = setTimeout(() => {
+        onBack();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isConfirmed, onBack]);
 
   if (loading) {
     return (
@@ -262,14 +265,14 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
         <div className="bg-white border-2 border-gray-200 rounded-xl p-4">
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Username <span className="text-red-500">*</span>
-          </label>
+          </label>{" "}
           <input
             type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your username"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            disabled={submitting}
+            disabled={isSubmitting || isConfirming}
             required
           />
         </div>
@@ -277,21 +280,97 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
         <div className="bg-white border-2 border-gray-200 rounded-xl p-4">
           <label className="block text-sm font-medium text-gray-900 mb-2">
             Email Address <span className="text-red-500">*</span>
-          </label>
+          </label>{" "}
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            disabled={submitting}
+            disabled={isSubmitting || isConfirming}
             required
           />
         </div>
       </div>
 
+      {/* Transaction Status */}
+      {(isSubmitting || isConfirming || isConfirmed || transactionId) && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex-shrink-0">
+              {isSubmitting || isConfirming ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+              ) : isConfirmed ? (
+                <svg
+                  className="h-5 w-5 text-green-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5 text-blue-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              )}
+            </div>
+            <h3 className="text-sm font-medium text-blue-800">
+              {isSubmitting
+                ? "Submitting Transaction..."
+                : isConfirming
+                ? "Waiting for Confirmation..."
+                : isConfirmed
+                ? "Transaction Confirmed!"
+                : "Transaction Submitted"}
+            </h3>
+          </div>
+
+          <p className="text-sm text-blue-700 mb-2">
+            {isSubmitting
+              ? "Please confirm the transaction in World App"
+              : isConfirming
+              ? "Transaction is being confirmed on blockchain..."
+              : isConfirmed
+              ? "Your survey response has been recorded on blockchain!"
+              : "Transaction ID received"}
+          </p>
+
+          {transactionId && (
+            <div className="mt-3 p-3 bg-white rounded-lg border border-blue-200">
+              <p className="text-xs font-medium text-blue-800 mb-1">
+                Transaction ID:
+              </p>
+              <p className="text-xs text-blue-600 font-mono break-all">
+                {transactionId}
+              </p>
+              {isConfirmed && (
+                <p className="text-xs text-green-600 mt-2 font-medium">
+                  ✅ Confirmed on blockchain
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Error Display */}
-      {error && (
+      {(error || (hasError && errorMessage)) && (
         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -308,9 +387,9 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Warning</h3>
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
               <div className="mt-2 text-sm text-red-700">
-                <p>{error}</p>
+                <p>{error || errorMessage}</p>
               </div>
             </div>
           </div>
@@ -342,7 +421,7 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
               placeholder="Enter your answer..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               rows={3}
-              disabled={submitting}
+              disabled={isSubmitting || isConfirming}
             />
 
             {question.isRequired && (
@@ -356,21 +435,43 @@ export const SurveyForm: React.FC<SurveyFormProps> = ({ formId, onBack }) => {
       <div className="sticky bottom-0 bg-white pt-4 border-t border-gray-200">
         <LiveFeedback
           label={{
-            failed: "Submission failed",
-            pending: "Submitting...",
-            success: "Submitted successfully!",
+            failed: hasError
+              ? errorMessage || "Transaction failed"
+              : "Submit failed",
+            pending: isConfirming
+              ? "Confirming on blockchain..."
+              : isSubmitting
+              ? "Processing transaction..."
+              : "Processing...",
+            success: isConfirmed
+              ? "Transaction confirmed on blockchain!"
+              : "Submitted successfully!",
           }}
-          state={submitState}
+          state={
+            hasError
+              ? "failed"
+              : isSubmitting || isConfirming
+              ? "pending"
+              : isConfirmed
+              ? "success"
+              : undefined
+          }
           className="w-full"
         >
           <Button
             onClick={handleSubmit}
-            disabled={submitting || !validateForm()}
+            disabled={isSubmitting || isConfirming || !validateForm()}
             size="lg"
             variant="primary"
             className="w-full"
           >
-            {submitting ? "Submitting..." : "Submit Answers"}
+            {isSubmitting
+              ? "Submitting..."
+              : isConfirming
+              ? "Confirming..."
+              : isConfirmed
+              ? "Confirmed!"
+              : "Submit to Blockchain"}
           </Button>
         </LiveFeedback>
 
