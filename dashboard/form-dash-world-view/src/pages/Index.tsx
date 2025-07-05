@@ -6,32 +6,50 @@ import CreateForm from '@/components/CreateForm';
 import ViewSubmissions from '@/components/ViewSubmissions';
 import ViewFormQR from '@/components/ViewFormQR';
 import PublicFormView from '@/components/PublicFormView';
+import LandingPage from '@/pages/LandingPage';
 
-type ViewType = 'dashboard' | 'create-form' | 'view-submissions' | 'view-form' | 'public-form';
+type ViewType = 'landing' | 'dashboard' | 'create-form' | 'view-submissions' | 'view-form' | 'public-form';
 
 const Index = () => {
-  const { isConnected, account } = useWallet();
-  const [currentView, setCurrentView] = useState<ViewType>('dashboard');
+  const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [selectedFormId, setSelectedFormId] = useState<number>(0);
+  
+  // Hook useWallet senza callback
+  const { isConnected, account } = useWallet();
+
+  // Callback per il redirect quando si disconnette
+  const handleDisconnect = () => {
+    console.log('User disconnected, redirecting to landing page');
+    setCurrentView('landing');
+  };
 
   // Check URL parameters on component mount
   useEffect(() => {
     const path = window.location.pathname;
-    const formMatch = path.match(/^\/form\/(\d+)$/);
     
-    if (formMatch) {
-      const formId = parseInt(formMatch[1], 10);
-      setSelectedFormId(formId);
-      setCurrentView('public-form');
+    // Handle different routes
+    if (path === '/' || path === '') {
+      setCurrentView('landing');
+    } else if (path === '/dashboard') {
+      setCurrentView('dashboard');
+    } else {
+      const formMatch = path.match(/^\/form\/(\d+)$/);
+      if (formMatch) {
+        const formId = parseInt(formMatch[1], 10);
+        setSelectedFormId(formId);
+        setCurrentView('public-form');
+      }
     }
   }, []);
 
   // Update URL when view changes
   useEffect(() => {
-    if (currentView === 'public-form') {
-      window.history.pushState(null, '', `/form/${selectedFormId}`);
-    } else if (currentView === 'dashboard') {
+    if (currentView === 'landing') {
       window.history.pushState(null, '', '/');
+    } else if (currentView === 'dashboard') {
+      window.history.pushState(null, '', '/dashboard');
+    } else if (currentView === 'public-form') {
+      window.history.pushState(null, '', `/form/${selectedFormId}`);
     }
   }, [currentView, selectedFormId]);
 
@@ -56,6 +74,11 @@ const Index = () => {
   const handleFormCreated = () => {
     setCurrentView('dashboard');
   };
+
+  // Show landing page for root path
+  if (currentView === 'landing') {
+    return <LandingPage onNavigateToDashboard={() => setCurrentView('dashboard')} />;
+  }
 
   // If viewing a public form, show it without auth requirements
   if (currentView === 'public-form') {
@@ -100,7 +123,7 @@ const Index = () => {
         {/* Connection Content */}
         <div className="flex items-center justify-center p-4 min-h-[calc(100vh-120px)]">
           <div className="w-full max-w-md">
-            <WalletConnect />
+            <WalletConnect onDisconnect={handleDisconnect} />
           </div>
         </div>
       </div>
@@ -163,7 +186,7 @@ const Index = () => {
 
               {/* Enhanced Wallet Connect */}
               <div className="relative">
-                <WalletConnect />
+                <WalletConnect onDisconnect={handleDisconnect} />
               </div>
             </div>
           </div>

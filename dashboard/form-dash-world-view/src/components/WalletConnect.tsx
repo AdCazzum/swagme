@@ -11,7 +11,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Wallet, AlertCircle, CheckCircle, ChevronDown } from 'lucide-react';
 
-const WalletConnect = () => {
+interface WalletConnectProps {
+  onDisconnect?: () => void;
+}
+
+const WalletConnect = ({ onDisconnect }: WalletConnectProps) => {
   const { 
     account, 
     isConnected, 
@@ -26,6 +30,13 @@ const WalletConnect = () => {
     isMainnet,
     getNetworkName
   } = useWallet();
+
+  const handleDisconnect = async () => {
+    await disconnectWallet();
+    if (onDisconnect) {
+      onDisconnect();
+    }
+  };
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -171,7 +182,7 @@ const WalletConnect = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={disconnectWallet}
+          onClick={handleDisconnect}
           className="text-gray-600 hover:text-red-600 hover:border-red-300 hover:bg-red-50 bg-white/80 border-gray-200 shadow-sm transition-all duration-200"
         >
           <span className="hidden sm:inline">Disconnect</span>
