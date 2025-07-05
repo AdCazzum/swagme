@@ -3,10 +3,10 @@ import TestContractABI from "../abi/TestContract.json";
 import { MiniKit } from "@worldcoin/minikit-js";
 
 const CHAIN_CONFIG = {
-  id: 4801,
-  name: "World Chain Sepolia",
-  rpcUrl: "https://worldchain-sepolia.g.alchemy.com/public",
-  explorerUrl: "https://sepolia.worldscan.org",
+  id: 480,
+  name: "World Chain",
+  rpcUrl: "https://worldchain-mainnet.g.alchemy.com/public",
+  explorerUrl: "https://worldscan.org",
 };
 
 export const sepoliaWorld = defineChain({
@@ -15,7 +15,7 @@ export const sepoliaWorld = defineChain({
   nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
   rpcUrls: { default: { http: [CHAIN_CONFIG.rpcUrl] } },
   blockExplorers: {
-    default: { name: "World Chain Explorer", url: CHAIN_CONFIG.explorerUrl },
+    default: { name: "Worldscan", url: CHAIN_CONFIG.explorerUrl },
   },
   testnet: true,
 });
